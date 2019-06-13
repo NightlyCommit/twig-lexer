@@ -1,0 +1,52 @@
+{
+  "name": "twig-lexer",
+  "version": "0.1.0",
+  "description": "Twig lexer",
+  "main": "cjs/index.js",
+  "module": "es/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "clean": "rimraf build es cjs types",
+    "precover": "rimraf coverage .nyc_output",
+    "prebuild": "npm run clean",
+    "prepack": "npm run clean && npm run build:cjs -- && npm run build:es -- && mv build/** .",
+    "postpack": "npm run clean",
+    "start": "node index.js",
+    "build": "npm run build:cjs && npm run build:es",
+    "build:cjs": "tsc --project . --module commonjs --outDir build/cjs --declaration true --declarationDir build/types",
+    "build:es": "tsc --project . --module es6 --outDir build/es",
+    "test": "npm run fastest",
+    "fastest": "ts-node node_modules/tape/bin/tape 'test/**/test.ts' | tap-bail | tap-spec",
+    "cover": "rimraf .nyc_output coverage && nyc npm t",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "doc": "typedoc --mode file --out docs --name twig-lexer --excludePrivate --excludeNotExported src"
+  },
+  "keywords": [
+    "twig"
+  ],
+  "author": "Eric MORAND <eric.morand@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/NightlyCommit/twig-lexer"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@types/node": "^12.0.8",
+    "locutus": "^2.0.11"
+  },
+  "devDependencies": {
+    "@types/tape": "^4.2.33",
+    "coveralls": "^3.0.4",
+    "merge": "^1.2.1",
+    "nyc": "^14.1.1",
+    "rimraf": "^2.6.3",
+    "tap": "^14.2.2",
+    "tap-bail": "^1.0.0",
+    "tap-mocha-reporter": "^4.0.1",
+    "tap-spec": "^5.0.0",
+    "tape": "^4.10.2",
+    "ts-node": "^8.2.0",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.5.1"
+  }
+}

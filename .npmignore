@@ -1,0 +1,14 @@
+/.editorconfig
+/.gitignore
+/.idea
+/.npmignore
+/.nyc_output
+/.nycrc.json
+/.coveralls.yml
+/.travis.yml
+/coverage
+/docs
+/package-lock.json
+/src
+/test
+/tsconfig.json

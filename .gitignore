@@ -1,0 +1,10 @@
+.coveralls.yml
+.idea
+.nyc_output
+build
+cjs
+coverage
+docs
+es
+node_modules
+types
