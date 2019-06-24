@@ -44,8 +44,6 @@ tape('Lexer', (test) => {
             let lexer = createLexer();
             let tokens = lexer.tokenize('{{foo.foo}}');
 
-            console.warn(tokens);
-
             testTokens(test, tokens, [
                 [TokenType.VARIABLE_START, '{{', 1, 1],
                 [TokenType.NAME, 'foo', 1, 3],
@@ -513,28 +511,6 @@ bla
             test.end();
         });
 
-        test.test('block end consumes next line separator', (test) => {
-            let lexer = createLexer();
-            let tokens = lexer.tokenize('{%rn%}\r\n{%r%}\r{%n%}\n');
-
-            console.warn(tokens);
-
-            testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.NAME, 'rn', 1, 3],
-                [TokenType.TAG_END, '%}\r\n', 1, 5],
-                [TokenType.TAG_START, '{%', 2, 1],
-                [TokenType.NAME, 'r', 2, 3],
-                [TokenType.TAG_END, '%}\r', 2, 4],
-                [TokenType.TAG_START, '{%', 3, 1],
-                [TokenType.NAME, 'n', 3, 3],
-                [TokenType.TAG_END, '%}\n', 3, 4],
-                [TokenType.EOF, null, 4, 1]
-            ]);
-
-            test.end();
-        });
-
         test.end();
     });
 
@@ -872,8 +848,6 @@ bla
         test.test('at start and end of a template', (test) => {
             let lexer = createLexer();
             let tokens = lexer.tokenize('foo {{bar}} bar');
-
-            console.warn(tokens);
 
             testTokens(test, tokens, [
                 [TokenType.TEXT, 'foo ', 1, 1],
