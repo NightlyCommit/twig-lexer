@@ -1,10 +1,10 @@
 {
   "name": "twig-lexer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Twig lexer",
-  "main": "cjs/index.js",
-  "module": "es/index.js",
-  "types": "types/index.d.ts",
+  "main": "cjs/Lexer.js",
+  "module": "es/Lexer.js",
+  "types": "types/Lexer.d.ts",
   "scripts": {
     "clean": "rimraf build es cjs types",
     "precover": "rimraf coverage .nyc_output",
@@ -31,8 +31,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "^12.0.8",
-    "locutus": "^2.0.11"
+    "@types/node": "^12.0.8"
   },
   "devDependencies": {
     "@types/tape": "^4.2.33",
