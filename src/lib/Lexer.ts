@@ -107,11 +107,17 @@ export class Lexer {
     private statementStartRegExp: RegExp;
     private states: LexerState[];
     private stringRegExp: RegExp;
+    private testOperatorRegExp: RegExp;
     private tokens: Token[];
     private trimmingModifier: string = '-';
     private variableEndRegExp: RegExp;
     private verbatimTagRegExp: RegExp;
     private whitespaceRegExp: RegExp;
+
+    /**
+     * The test operators.
+     */
+    protected testOperators: [string, string];
 
     /**
      * The supported operators.
@@ -155,8 +161,6 @@ export class Lexer {
             '<=',
             '>',
             '>=',
-            'is',
-            'is not',
             'not',
             'in',
             'not in',
@@ -179,6 +183,7 @@ export class Lexer {
         this.commentPair = ['{#', '#}'];
         this.interpolationPair = ['#{', '}'];
         this.variablePair = ['{{', '}}'];
+        this.testOperators = ['is', 'is not'];
     }
 
     /**
@@ -200,36 +205,36 @@ export class Lexer {
         this.scope = null;
         this.scopes = [];
 
-        // init regular expressions
-        let operators = Array.from([
-            '=',
-            ...this.operators
-        ]);
+        let createOperatorRegExp = (operators: string[]): RegExp => {
+            let patterns: Array<string> = [];
 
-        operators.sort(function (a, b) {
-            return a.length > b.length ? -1 : 1;
-        });
+            operators.sort(function (a, b) {
+                return a.length > b.length ? -1 : 1;
+            });
 
-        let patterns: Array<string> = [];
+            for (let operator of operators) {
+                let length: number = operator.length;
+                let pattern: string = escapeRegularExpressionPattern(operator);
 
-        for (let operator of operators) {
-            let length: number = operator.length;
-            let pattern: string = escapeRegularExpressionPattern(operator);
+                // an operator that ends with a character must be followed by a whitespace or an opening parenthesis
+                if (new RegExp('[A-Za-z]').test(operator[length - 1])) {
+                    pattern += '(?=[\\s(])';
+                }
 
-            // an operator that ends with a character must be followed by a whitespace or an opening parenthesis
-            if (new RegExp('[A-Za-z]').test(operator[length - 1])) {
-                pattern += '(?=[\\s(])';
+                // a space within an operator can be any amount of whitespaces
+                pattern = pattern.replace(/\s+/, '\\s+');
+
+                patterns.push(pattern);
             }
 
-            // a space within an operator can be any amount of whitespaces
-            pattern = pattern.replace(/\s+/, '\\s+');
+            let pattern: string = `^(${patterns.join('|')})`;
 
-            patterns.push(pattern);
-        }
+            return new RegExp(pattern);
+        };
 
-        let pattern: string = `^(${patterns.join('|')})`;
-
-        this.operatorRegExp = new RegExp(pattern);
+        // init regular expressions
+        this.testOperatorRegExp = createOperatorRegExp(this.testOperators);
+        this.operatorRegExp = createOperatorRegExp(this.operators);
 
         this.blockEndRegExp = new RegExp(
             '^(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)(' + this.tagPair[1] + '(?:' + lineSeparators.join('|') + ')?)'
@@ -377,8 +382,12 @@ export class Lexer {
         let candidate: string = this.source.substring(this.cursor);
         let singleCharacterCandidate: string = candidate.substr(0, 1);
 
+        // test operator
+        if ((match = this.testOperatorRegExp.exec(candidate)) !== null) {
+            this.pushToken(TokenType.TEST_OPERATOR, match[0]);
+        }
         // operator
-        if ((match = this.operatorRegExp.exec(candidate)) !== null) {
+        else if ((match = this.operatorRegExp.exec(candidate)) !== null) {
             this.pushToken(TokenType.OPERATOR, match[0]);
         }
         // name
