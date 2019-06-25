@@ -22,7 +22,7 @@ let tokens = lexer.tokenize('Hello {{world}}!');
 
 Read the [documentation](https://nightlycommit.github.io/twig-lexer) for more information.
 
-## About Twig specifications - of lack thereof
+## About Twig specifications - or lack thereof
 
 As incredible as it sounds, Twig is a language with no official specifications - even internally at SensioLabs, [it seems](https://github.com/twigphp/Twig/issues/3066#issuecomment-502672166). As such, it is subject to interpretations and twig-lexer is one of them. It's very close to TwigPHP lexer (and as such implements things like [the operator confusion](https://github.com/twigphp/Twig/issues/3066)) but also outputs some token types that are not output by TwigPHP lexer - like `OPENING_QUOTE` or `WHITESPACE` - or with different names - like `TAG_START` instead of `BLOCK_START`.
 
