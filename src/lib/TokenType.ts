@@ -29,10 +29,10 @@ export enum TokenType {
  *
  * @returns {string} The string representation
  */
-export const typeToString = (type: TokenType, short: boolean = false) => {
+export function typeToString(type: TokenType, short: boolean = false): string {
     if (type in TokenType) {
         return short ? type : 'TokenType.' + type;
     } else {
         throw new Error(`Token type "${type}" does not exist.`);
     }
-};
+}

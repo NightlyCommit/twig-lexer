@@ -1,8 +1,8 @@
 import * as tape from 'tape';
-import {Lexer} from '../../../src/Lexer';
-import {Token} from "../../../src/Token";
-import {TokenType, typeToString} from "../../../src/TokenType";
-import {SyntaxError} from "../../../src/SyntaxError";
+import {Lexer} from '../../../../src/lib/Lexer';
+import {Token} from "../../../../src/lib/Token";
+import {TokenType, typeToString} from "../../../../src/lib/TokenType";
+import {SyntaxError} from "../../../../src/lib/SyntaxError";
 
 class CustomLexer extends Lexer {
     constructor() {

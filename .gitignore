@@ -1,9 +1,9 @@
 .coveralls.yml
 .idea
 .nyc_output
-build
 cjs
 coverage
+dist
 es
 node_modules
 types

@@ -1,5 +1,5 @@
 import * as tape from 'tape';
-import {TokenType, typeToString} from '../../../src/TokenType';
+import {TokenType, typeToString} from '../../../../src/lib/TokenType';
 
 tape('TokenType', (test) => {
     test.test('typeToString', (test) => {
