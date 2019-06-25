@@ -1,6 +1,6 @@
 {
   "name": "twig-lexer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Twig lexer",
   "main": "dist/cjs/index.js",
   "module": "dist/es/index.js",
