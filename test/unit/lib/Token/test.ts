@@ -1,6 +1,6 @@
 import * as tape from 'tape';
-import {Token} from '../../../src/Token';
-import {TokenType} from '../../../src/TokenType';
+import {Token} from '../../../../src/lib/Token';
+import {TokenType} from '../../../../src/lib/TokenType';
 
 tape('Token', (test) => {
     test.test('test', (test) => {

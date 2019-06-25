@@ -1,4 +1,4 @@
-import {SyntaxError} from '../../../src/SyntaxError';
+import {SyntaxError} from '../../../../src/lib/SyntaxError';
 import * as tape from 'tape';
 
 tape('SyntaxError', (test) => {
