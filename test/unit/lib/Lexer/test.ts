@@ -336,21 +336,16 @@ bla }}`;
         test.test('with unicode character from 127 to 255 as name', (test) => {
             let lexer = createLexer();
 
-            // for (let code = 127; code <= 255; code++) {
-            //     let char = String.fromCharCode(code);
-            //     let tokens = lexer.tokenize(`{{ ${char} }}`);
-            //
-            //     test.comment(`${code}: {{ ${char} }}`);
-            //
-            //     testTokens(test, tokens, [
-            //         [TokenType.VARIABLE_START, '{{', 1, 1],
-            //         [TokenType.WHITESPACE, ' ', 1, 3],
-            //         [TokenType.NAME, char, 1, 4],
-            //         [TokenType.WHITESPACE, ' ', 1, 5],
-            //         [TokenType.VARIABLE_END, '}}', 1, 6],
-            //         [TokenType.EOF, null, 1, 8]
-            //     ]);
-            // }
+            for (let code = 127; code <= 255; code++) {
+                let char = String.fromCharCode(code);
+                let tokens = lexer.tokenize(`{{ ${char} }}`);
+
+                test.comment(`${code}: {{ ${char} }}`);
+
+                testTokens(test, [tokens[2]], [
+                    [TokenType.NAME, char, 1, 4]
+                ]);
+            }
 
             test.end();
         });
@@ -762,6 +757,50 @@ bla
 
             test.end();
         });
+
+        test.end();
+    });
+
+    test.test('lex test operator', (test) => {
+        let lexer = createLexer();
+        let tokens: Token[];
+
+        tokens = lexer.tokenize('{{ is not foo }}');
+
+        testTokens(test, [tokens[2], tokens[4]], [
+            [TokenType.TEST_OPERATOR, 'is not', 1, 4],
+            [TokenType.NAME, 'foo', 1, 11]
+        ]);
+
+        test.comment('space within a test operator can be any amount of whitespaces');
+
+        tokens = lexer.tokenize('{{ is            not foo }}');
+
+        testTokens(test, [tokens[2], tokens[4]], [
+            [TokenType.TEST_OPERATOR, 'is            not', 1, 4],
+            [TokenType.NAME, 'foo', 1, 22]
+        ]);
+
+        tokens = lexer.tokenize('{{ is foo }}');
+
+        testTokens(test, [tokens[2], tokens[4]], [
+            [TokenType.TEST_OPERATOR, 'is', 1, 4],
+            [TokenType.NAME, 'foo', 1, 7]
+        ]);
+
+        tokens = lexer.tokenize('{{ is is not }}');
+
+        testTokens(test, [tokens[2], tokens[4]], [
+            [TokenType.TEST_OPERATOR, 'is', 1, 4],
+            [TokenType.TEST_OPERATOR, 'is not', 1, 7]
+        ]);
+
+        tokens = lexer.tokenize('{{ is not is }}');
+
+        testTokens(test, [tokens[2], tokens[4]], [
+            [TokenType.TEST_OPERATOR, 'is not', 1, 4],
+            [TokenType.TEST_OPERATOR, 'is', 1, 11]
+        ]);
 
         test.end();
     });
