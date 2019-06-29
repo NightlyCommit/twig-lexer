@@ -108,6 +108,7 @@ export class Lexer {
     private states: LexerState[];
     private stringRegExp: RegExp;
     private testOperatorRegExp: RegExp;
+    private arrowOperatorRegExp: RegExp;
     private tokens: Token[];
     private trimmingModifier: string = '-';
     private variableEndRegExp: RegExp;
@@ -118,7 +119,12 @@ export class Lexer {
      * The test operators.
      */
     protected testOperators: [string, string];
-
+    
+    /**
+     * The arrow operator.
+     */
+     protected arrowOperator: [string];
+     
     /**
      * The supported operators.
      */
@@ -184,6 +190,7 @@ export class Lexer {
         this.interpolationPair = ['#{', '}'];
         this.variablePair = ['{{', '}}'];
         this.testOperators = ['is', 'is not'];
+        this.arrowOperator = ['=>'];
     }
 
     /**
@@ -235,6 +242,7 @@ export class Lexer {
         // init regular expressions
         this.testOperatorRegExp = createOperatorRegExp(this.testOperators);
         this.operatorRegExp = createOperatorRegExp(this.operators);
+        this.arrowOperatorRegExp = createOperatorRegExp(this.arrowOperator);
 
         this.blockEndRegExp = new RegExp(
             '^(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)(' + this.tagPair[1] + '(?:' + lineSeparators.join('|') + ')?)'
@@ -385,6 +393,10 @@ export class Lexer {
         // test operator
         if ((match = this.testOperatorRegExp.exec(candidate)) !== null) {
             this.pushToken(TokenType.TEST_OPERATOR, match[0]);
+        }
+        // arrow
+        else if ((match = this.arrowOperatorRegExp.exec(candidate)) !== null) {
+            this.pushToken(TokenType.ARROW, match[0]);
         }
         // operator
         else if ((match = this.operatorRegExp.exec(candidate)) !== null) {

@@ -863,6 +863,37 @@ bla
         test.end();
     });
 
+    test.test('lex arrow', (test) => {
+        let lexer = createLexer();
+        let tokens: Token[];
+    
+        tokens = lexer.tokenize('{{ foo|filter(v => v > 1) }}');
+    
+        testTokens(test, tokens, [
+            [TokenType.VARIABLE_START, '{{', 1, 1],
+            [TokenType.WHITESPACE, ' ', 1, 3],
+            [TokenType.NAME, 'foo', 1, 4],
+            [TokenType.PUNCTUATION, '|', 1, 7],
+            [TokenType.NAME, 'filter', 1, 8],
+            [TokenType.PUNCTUATION, '(', 1, 14],
+            [TokenType.NAME, 'v', 1, 15],
+            [TokenType.WHITESPACE, ' ', 1, 16],
+            [TokenType.ARROW, '=>', 1, 17],
+            [TokenType.WHITESPACE, ' ', 1, 19],
+            [TokenType.NAME, 'v', 1, 20],
+            [TokenType.WHITESPACE, ' ', 1, 21],
+            [TokenType.OPERATOR, '>', 1, 22],
+            [TokenType.WHITESPACE, ' ', 1, 23],
+            [TokenType.NUMBER, '1', 1, 24],
+            [TokenType.PUNCTUATION, ')', 1, 25],
+            [TokenType.WHITESPACE, ' ', 1, 26],
+            [TokenType.VARIABLE_END, '}}', 1, 27],
+            [TokenType.EOF, null, 1, 29]
+        ]);
+    
+        test.end();
+    })
+
     test.test('lex text', (test) => {
         let lexer = createLexer();
         let tokens = lexer.tokenize('foo ');
