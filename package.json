@@ -11,15 +11,13 @@
     "prebuild": "npm run clean",
     "prepack": "npm run clean && npm run build:cjs -- && npm run build:es --",
     "postpack": "npm run clean",
-    "start": "node index.js",
     "build": "npm run build:cjs && npm run build:es",
     "build:cjs": "tsc --project . --module commonjs --outDir dist/cjs --declaration true --declarationDir dist/types",
     "build:es": "tsc --project . --module es6 --outDir dist/es",
-    "test": "npm run fastest",
-    "fastest": "ts-node node_modules/tape/bin/tape 'test/**/test.ts' | tap-bail | tap-spec",
+    "build:doc": "typedoc --mode file --out docs --name twig-lexer --excludePrivate --excludeNotExported src",
+    "test": "ts-node node_modules/tape/bin/tape 'test/**/test.ts' | tap-bail | tap-spec",
     "cover": "rimraf .nyc_output coverage && nyc npm t",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "doc": "typedoc --mode file --out docs --name twig-lexer --excludePrivate --excludeNotExported src"
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
     "twig"
