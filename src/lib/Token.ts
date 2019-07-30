@@ -1,10 +1,10 @@
 import {TokenType, typeToString} from "./TokenType";
 
 export class Token {
-    private type: TokenType;
-    private value: any;
-    private line: number;
-    private column: number;
+    private readonly _type: TokenType;
+    private readonly _value: any;
+    private readonly _line: number;
+    private readonly _column: number;
 
     /**
      * @constructor
@@ -14,21 +14,21 @@ export class Token {
      * @param {number} column The column where the token is located in the source
      */
     constructor(type: TokenType, value: any, line: number, column: number) {
-        this.type = type;
-        this.value = value;
-        this.line = line;
-        this.column = column;
+        this._type = type;
+        this._value = value;
+        this._line = line;
+        this._column = column;
     }
 
     /**
-     * Tests the current token for a type and/or a content.
+     * Test the token for a type and/or a content.
      *
      * @param {TokenType} type
-     * @param {string|string[]|number} values
+     * @param {string|string[]|number} value
      * @returns {boolean}
      */
-    public test(type: TokenType, values: string | string[] | number = null) {
-        return (this.type === type) && (values === null || (Array.isArray(values) && values.includes(this.value)) || this.value == values);
+    public test(type: TokenType, value: string | string[] | number = null) {
+        return (this._type === type) && (value === null || (Array.isArray(value) && value.includes(this._value)) || this._value == value);
     }
 
     /**
@@ -36,8 +36,8 @@ export class Token {
      *
      * @return {number}
      */
-    public getLine(): number {
-        return this.line;
+    get line(): number {
+        return this._line;
     }
 
     /**
@@ -45,8 +45,8 @@ export class Token {
      *
      * @return {number}
      */
-    public getColumn(): number {
-        return this.column;
+    get column(): number {
+        return this._column;
     }
 
     /**
@@ -54,8 +54,8 @@ export class Token {
      *
      * @return {TokenType}
      */
-    public getType(): TokenType {
-        return this.type;
+    get type(): TokenType {
+        return this._type;
     }
 
     /**
@@ -63,8 +63,8 @@ export class Token {
      *
      * @return {*}
      */
-    public getValue(): any {
-        return this.value;
+    get value(): any {
+        return this._value;
     }
 
     /**

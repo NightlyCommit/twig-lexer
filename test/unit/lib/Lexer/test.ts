@@ -29,10 +29,10 @@ let testTokens = (test: tape.Test, tokens: Token[], data: [TokenType, any, numbe
         let line = data[index][2];
         let column = data[index][3];
 
-        test.same(token.getType(), type, 'type should be "' + typeToString(type) + '"');
-        test.looseEqual(token.getValue(), value, token.getType() + ' value should be "' + ((value && value.length > 80) ? value.substr(0, 77) + '...' : value) + '"');
-        test.same(token.getLine(), line, 'line should be ' + line);
-        test.same(token.getColumn(), column, 'column should be ' + column);
+        test.same(token.type, type, 'type should be "' + typeToString(type) + '"');
+        test.looseEqual(token.value, value, token.type + ' value should be "' + ((value && value.length > 80) ? value.substr(0, 77) + '...' : value) + '"');
+        test.same(token.line, line, 'line should be ' + line);
+        test.same(token.column, column, 'column should be ' + column);
 
         index++;
     }

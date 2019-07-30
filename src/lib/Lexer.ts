@@ -1,6 +1,6 @@
 import {Token} from "./Token";
-import {SyntaxError} from "./SyntaxError";
 import {TokenType} from "./TokenType";
+import {SyntaxError} from "./SyntaxError";
 
 enum LexerState {
     COMMENT = 'COMMENT',
@@ -119,12 +119,12 @@ export class Lexer {
      * The test operators.
      */
     protected testOperators: [string, string];
-    
+
     /**
      * The arrow operator.
      */
-     protected arrowOperator: [string];
-     
+    protected arrowOperator: [string];
+
     /**
      * The supported operators.
      */
