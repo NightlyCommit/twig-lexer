@@ -268,7 +268,7 @@ tape('Lexer', (test) => {
                 test.fail('should throw a syntax error');
             } catch (e) {
                 test.same((e as SyntaxError).name, 'SyntaxError');
-                test.same((e as SyntaxError).message, 'Unexpected end of file: unclosed verbatim opened at {1:1}.');
+                test.same((e as SyntaxError).message, 'Unclosed verbatim opened at {1:1}.');
                 test.same((e as SyntaxError).line, 2);
                 test.same((e as SyntaxError).column, 12);
             }
@@ -398,7 +398,7 @@ bla }}`;
                 test.fail('should throw a syntax error');
             } catch (e) {
                 test.same((e as SyntaxError).name, 'SyntaxError');
-                test.same((e as SyntaxError).message, 'Unexpected end of file: unclosed variable opened at {1:1}.');
+                test.same((e as SyntaxError).message, 'Unclosed variable opened at {1:1}.');
                 test.same((e as SyntaxError).line, 1);
                 test.same((e as SyntaxError).column, 8);
             }
@@ -498,7 +498,7 @@ bla
                 test.fail('should throw a syntax error');
             } catch (e) {
                 test.same((e as SyntaxError).name, 'SyntaxError');
-                test.same((e as SyntaxError).message, 'Unexpected end of file: unclosed block opened at {1:1}.');
+                test.same((e as SyntaxError).message, 'Unclosed tag opened at {1:1}.');
                 test.same((e as SyntaxError).line, 1);
                 test.same((e as SyntaxError).column, 8);
             }
@@ -645,7 +645,7 @@ bla
                 test.fail('should throw a syntax error');
             } catch (e) {
                 test.same((e as SyntaxError).name, 'SyntaxError');
-                test.same((e as SyntaxError).message, 'Unexpected end of file: unclosed """ opened at {1:12}.');
+                test.same((e as SyntaxError).message, 'Unclosed """ opened at {1:12}.');
                 test.same((e as SyntaxError).line, 2);
                 test.same((e as SyntaxError).column, 2);
             }
@@ -1009,7 +1009,7 @@ bla
                 test.fail('should throw a syntax error');
             } catch (e) {
                 test.same((e as SyntaxError).name, 'SyntaxError');
-                test.same((e as SyntaxError).message, 'Unexpected end of file: unclosed comment opened at {1:1}.');
+                test.same((e as SyntaxError).message, 'Unclosed comment opened at {1:1}.');
                 test.same((e as SyntaxError).line, 2);
                 test.same((e as SyntaxError).column, 2);
             }

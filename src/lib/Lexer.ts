@@ -373,11 +373,11 @@ export class Lexer {
         this.pushToken(TokenType.EOF, null);
 
         if (this.state == LexerState.VARIABLE) {
-            throw new SyntaxError(`Unexpected end of file: unclosed variable opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
+            throw new SyntaxError(`Unclosed variable opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
         } else if (this.state == LexerState.TAG) {
-            throw new SyntaxError(`Unexpected end of file: unclosed block opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
+            throw new SyntaxError(`Unclosed tag opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
         } else if (this.scope) {
-            throw new SyntaxError(`Unexpected end of file: unclosed "${this.scope.value}" opened at {${this.scope.line}:${this.scope.column}}.`, this.line, this.column);
+            throw new SyntaxError(`Unclosed "${this.scope.value}" opened at {${this.scope.line}:${this.scope.column}}.`, this.line, this.column);
         }
 
         return this.tokens;
@@ -500,7 +500,7 @@ export class Lexer {
         if (!match) {
             this.moveCoordinates(candidate);
 
-            throw new SyntaxError(`Unexpected end of file: unclosed verbatim opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
+            throw new SyntaxError(`Unclosed verbatim opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
         }
 
         let text = this.source.substr(this.cursor, match.index);
@@ -535,7 +535,7 @@ export class Lexer {
         if (!match) {
             this.moveCoordinates(candidate);
 
-            throw new SyntaxError(`Unexpected end of file: unclosed comment opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
+            throw new SyntaxError(`Unclosed comment opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
         }
 
         let text = this.source.substr(this.cursor, match.index);
