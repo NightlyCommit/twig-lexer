@@ -1,7 +1,9 @@
 import * as tape from 'tape';
-import {TokenStream} from '../../../../src/lib/TokenStream';
+import {astVisitor, TokenStream} from '../../../../src/lib/TokenStream';
 import {Token} from "../../../../src/lib/Token";
 import {TokenType} from "../../../../src/lib/TokenType";
+
+const sinon = require('sinon');
 
 tape('TokenStream', (test) => {
     test.test('traversal', (test) => {
@@ -115,72 +117,151 @@ STRING(foo)`);
         test.end();
     });
 
+    test.test('traverse', (test) => {
+        let stream = new TokenStream([
+            new Token(TokenType.NAME, 'foo', 1, 1),
+            new Token(TokenType.TEXT, 'foo', 1, 1),
+            new Token(TokenType.STRING, 'foo', 1, 1)
+        ]);
+
+        let tokens = stream.traverse((token: Token, stream: TokenStream): Token => {
+            if (token.test(TokenType.TEXT)) {
+                return token;
+            }
+        });
+
+        test.true(tokens[0].test(TokenType.TEXT));
+
+        test.end();
+    });
+
     test.test('toAst', (test) => {
         let stream = new TokenStream([
+            new Token(TokenType.NAME, 'foo', 1, 1),
+            new Token(TokenType.TEXT, 'foo', 1, 1),
+            new Token(TokenType.STRING, 'foo', 1, 1)
+        ]);
+
+        let traverseSpy = sinon.spy(stream, 'traverse');
+
+        let tokens = stream.toAst();
+
+        test.same(traverseSpy.callCount, 1);
+        test.true(traverseSpy.alwaysCalledWith(astVisitor));
+        test.same(tokens, stream.tokens);
+
+        test.end();
+    });
+
+    test.test('astVisitor', (test) => {
+        let stream: TokenStream;
+
+        stream = new TokenStream([
+            new Token(TokenType.EOF, null, 10, 5)
+        ]);
+
+        test.same(astVisitor(stream.current, stream), stream.current, 'keeps EOF untouched');
+
+        stream = new TokenStream([
+            new Token(TokenType.NUMBER, '5.78', 10, 5)
+        ]);
+
+        test.true(astVisitor(stream.current, stream).test(TokenType.NUMBER, 5.78), 'sanitizes NUMBER value');
+
+        stream = new TokenStream([
+            new Token(TokenType.INTERPOLATION_START, '#{', 10, 5)
+        ]);
+
+        test.same(astVisitor(stream.current, stream), stream.current, 'keeps relevant token untouched');
+
+        stream = new TokenStream([
+            new Token(TokenType.OPENING_QUOTE, '"', 1, 4),
             new Token(TokenType.TRIMMING_MODIFIER, '-', 1, 1),
             new Token(TokenType.WHITESPACE, ' ', 1, 2),
             new Token(TokenType.LINE_TRIMMING_MODIFIER, '~', 1, 3),
-            new Token(TokenType.EOF, null, 1, 4),
+            new Token(TokenType.CLOSING_QUOTE, '"', 1, 5)
         ]);
 
-        test.true(stream.toAst()[0].test(TokenType.EOF), 'filters non-relevant tokens');
+        test.false(astVisitor(stream.current, stream), 'filters OPENING_QUOTE tokens');
+        stream.next();
+        test.false(astVisitor(stream.current, stream), 'filters TRIMMING_MODIFIER tokens');
+        stream.next();
+        test.false(astVisitor(stream.current, stream), 'filters WHITESPACE tokens');
+        stream.next();
+        test.false(astVisitor(stream.current, stream), 'filters LINE_TRIMMING_MODIFIER tokens');
+        stream.next();
+        test.false(astVisitor(stream.current, stream), 'filters CLOSING_QUOTE tokens');
 
         stream = new TokenStream([
             new Token(TokenType.TEXT, 'foo\n ', 1, 1),
             new Token(TokenType.TAG_START, '{%', 2, 1),
-            new Token(TokenType.TRIMMING_MODIFIER, '-', 2, 3),
-            new Token(TokenType.EOF, null, 2, 4),
+            new Token(TokenType.TRIMMING_MODIFIER, '-', 2, 3)
         ]);
 
-        test.true(stream.toAst()[0].test(TokenType.TEXT, 'foo'), 'handles trimming modifier on left side');
+        test.true(astVisitor(stream.current, stream).test(TokenType.TEXT, 'foo'), 'handles trimming modifier on left side');
 
         stream = new TokenStream([
             new Token(TokenType.TRIMMING_MODIFIER, '-', 1, 1),
             new Token(TokenType.TAG_END, '%}', 1, 2),
-            new Token(TokenType.TEXT, ' \nfoo', 1, 4),
-            new Token(TokenType.EOF, null, 2, 1),
+            new Token(TokenType.TEXT, ' \nfoo', 1, 4)
         ]);
 
-        test.true(stream.toAst()[1].test(TokenType.TEXT, 'foo'), 'handles trimming modifier on right side');
+        stream.next();
+        stream.next();
+
+        test.true(astVisitor(stream.current, stream).test(TokenType.TEXT, 'foo'), 'handles trimming modifier on right side');
 
         stream = new TokenStream([
             new Token(TokenType.TEXT, 'foo\n ', 1, 1),
             new Token(TokenType.TAG_START, '{%', 2, 1),
-            new Token(TokenType.LINE_TRIMMING_MODIFIER, '~', 2, 3),
-            new Token(TokenType.EOF, null, 2, 4),
+            new Token(TokenType.LINE_TRIMMING_MODIFIER, '~', 2, 3)
         ]);
 
-        test.true(stream.toAst()[0].test(TokenType.TEXT, 'foo\n'), 'handles line trimming modifier on left side');
+        test.true(astVisitor(stream.current, stream).test(TokenType.TEXT, 'foo\n'), 'handles line trimming modifier on left side');
 
         stream = new TokenStream([
             new Token(TokenType.LINE_TRIMMING_MODIFIER, '~', 1, 1),
             new Token(TokenType.TAG_END, '%}', 1, 2),
-            new Token(TokenType.TEXT, ' \nfoo', 1, 4),
-            new Token(TokenType.EOF, null, 2, 1),
+            new Token(TokenType.TEXT, ' \nfoo', 1, 4)
         ]);
 
-        test.true(stream.toAst()[1].test(TokenType.TEXT, '\nfoo'), 'handles line trimming modifier on right side');
+        stream.next();
+        stream.next();
+
+        test.true(astVisitor(stream.current, stream).test(TokenType.TEXT, '\nfoo'), 'handles line trimming modifier on right side');
 
         stream = new TokenStream([
-            new Token(TokenType.OPERATOR, 'foo       bar', 1, 1),
-            new Token(TokenType.EOF, null, 1, 16),
+            new Token(TokenType.OPERATOR, 'foo       bar', 1, 1)
         ]);
 
-        test.true(stream.toAst()[0].test(TokenType.OPERATOR, 'foo bar'), 'removes unnecessary operator spaces');
+        test.true(astVisitor(stream.current, stream).test(TokenType.OPERATOR, 'foo bar'), 'removes unnecessary operator spaces');
 
         stream = new TokenStream([
             new Token(TokenType.TEXT, '', 1, 1),
-            new Token(TokenType.EOF, null, 1, 6),
         ]);
 
-        test.true(stream.toAst()[0].test(TokenType.EOF), 'filters empty TEXT tokens out');
+        test.false(astVisitor(stream.current, stream), 'filters empty TEXT tokens out');
 
         stream = new TokenStream([
-            new Token(TokenType.STRING, '\\z\\t', 1, 1),
-            new Token(TokenType.EOF, null, 1, 6),
+            new Token(TokenType.STRING, '\\z\\t', 1, 1)
         ]);
 
-        test.true(stream.toAst()[0].test(TokenType.STRING, 'z\t'), 'converts C-style escape sequences');
+        test.true(astVisitor(stream.current, stream).test(TokenType.STRING, 'z\t'), 'converts C-style escape sequences');
+
+        test.test('replaces OPENING_QUOTE tokens immediately followed by a CLOSING_QUOTE token with empty string tokens', (test) => {
+            let stream = new TokenStream([
+                new Token(TokenType.OPENING_QUOTE, '"', 1, 5),
+                new Token(TokenType.CLOSING_QUOTE, '"', 1, 6)
+            ]);
+
+            let token = astVisitor(stream.current, stream);
+
+            test.true(token.test(TokenType.STRING, ''));
+            test.same(token.line, 1);
+            test.same(token.column, 5);
+
+            test.end();
+        });
 
         test.end();
     });
