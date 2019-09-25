@@ -13,6 +13,83 @@ const stripcslashes = function (string: string) {
     });
 };
 
+type TokenVisitor = (token: Token, stream: TokenStream) => Token;
+
+/**
+ * Token visitor that returns an AST token relevant to render a Twig template.
+ *
+ * @param {Token} token
+ * @param {TokenStream} stream
+ * @return {Token}
+ */
+export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Token => {
+    if (!token.test(TokenType.WHITESPACE) &&
+        !token.test(TokenType.TRIMMING_MODIFIER) &&
+        !token.test(TokenType.LINE_TRIMMING_MODIFIER)) {
+        let tokenValue: string = token.value;
+
+        if (token.test(TokenType.EOF)) {
+            return token;
+        }
+
+        if (token.test(TokenType.NUMBER)) {
+            return new Token(token.type, Number(token.value), token.line, token.column);
+        }
+
+        if (token.test(TokenType.OPENING_QUOTE)) {
+            let candidate = stream.look(1);
+
+            if (candidate.test(TokenType.CLOSING_QUOTE)) {
+                return new Token(TokenType.STRING, '', token.line, token.column);
+            }
+        }
+
+        if (!token.test(TokenType.OPENING_QUOTE) && !token.test(TokenType.CLOSING_QUOTE)) {
+            if (token.test(TokenType.TEXT) || token.test(TokenType.STRING)) {
+                // strip C slashes
+                tokenValue = stripcslashes(tokenValue);
+                // streamline line separators
+                tokenValue = tokenValue.replace(/\r\n|\r/g, '\n');
+            } else if (token.test(TokenType.OPERATOR)) {
+                // remove unnecessary operator spaces
+                tokenValue = tokenValue.replace(/\s+/, ' ');
+            }
+
+            // handle whitespace control modifiers
+            let wstCandidate: Token;
+
+            wstCandidate = stream.look(2);
+
+            if (wstCandidate) {
+                if (wstCandidate.type === TokenType.TRIMMING_MODIFIER) {
+                    tokenValue = tokenValue.replace(/\s*$/, '');
+                }
+
+                if (wstCandidate.type === TokenType.LINE_TRIMMING_MODIFIER) {
+                    tokenValue = tokenValue.replace(/[ \t\0\x0B]*$/, '');
+                }
+            }
+
+            wstCandidate = stream.look(-2);
+
+            if (wstCandidate) {
+                if (wstCandidate.type === TokenType.TRIMMING_MODIFIER) {
+                    tokenValue = tokenValue.replace(/^\s*/, '');
+                }
+
+                if (wstCandidate.type === TokenType.LINE_TRIMMING_MODIFIER) {
+                    tokenValue = tokenValue.replace(/^[ \t\0\x0B]*/, '');
+                }
+            }
+
+            // don't push empty TEXT tokens
+            if (!token.test(TokenType.TEXT) || (tokenValue.length > 0)) {
+                return new Token(token.type, tokenValue, token.line, token.column);
+            }
+        }
+    }
+};
+
 export class TokenStream {
     private _tokens: Array<Token>;
     private _current: number = 0;
@@ -42,6 +119,15 @@ export class TokenStream {
     }
 
     /**
+     * Construct and return a list of tokens relevant to render a Twig template.
+     *
+     * @return {Token[]}
+     */
+    toAst(): Token[] {
+        return this.traverse(astVisitor);
+    }
+
+    /**
      * Serialize the stream to a Twig string.
      *
      * @return {string}
@@ -53,76 +139,22 @@ export class TokenStream {
     }
 
     /**
-     * Construct and return a list of tokens relevant to render a Twig template.
+     * Traverse the stream using a visitor.
      *
+     * @param {TokenVisitor} visitor
      * @return {Token[]}
      */
-    toAst(): Token[] {
+    traverse(visitor: TokenVisitor): Token[] {
         let tokens: Token[] = [];
 
-        while (!this.test(TokenType.EOF)) {
-            let current: Token = this.current;
+        do {
+            let token = visitor(this.current, this);
 
-            if (!this.test(TokenType.WHITESPACE) &&
-                !this.test(TokenType.TRIMMING_MODIFIER) &&
-                !this.test(TokenType.LINE_TRIMMING_MODIFIER)) {
-                let tokenValue: string = current.value;
-
-                if (this.test(TokenType.TEXT) || this.test(TokenType.STRING)) {
-                    // strip C slashes
-                    tokenValue = stripcslashes(tokenValue);
-                    // streamline line separators
-                    tokenValue = tokenValue.replace(/\r\n|\r/g, '\n');
-                } else if (this.test(TokenType.OPERATOR)) {
-                    // remove unnecessary operator spaces
-                    tokenValue = tokenValue.replace(/\s+/, ' ');
-                }
-
-                // handle whitespace control modifiers
-                let wstCandidate: Token;
-
-                wstCandidate = this.look(2);
-
-                if (wstCandidate) {
-                    if (wstCandidate.type === TokenType.TRIMMING_MODIFIER) {
-                        tokenValue = tokenValue.replace(/\s*$/, '');
-                    }
-
-                    if (wstCandidate.type === TokenType.LINE_TRIMMING_MODIFIER) {
-                        tokenValue = tokenValue.replace(/[ \t\0\x0B]*$/, '');
-                    }
-                }
-
-                wstCandidate = this.look(-2);
-
-                if (wstCandidate) {
-                    if (wstCandidate.type === TokenType.TRIMMING_MODIFIER) {
-                        tokenValue = tokenValue.replace(/^\s*/, '');
-                    }
-
-                    if (wstCandidate.type === TokenType.LINE_TRIMMING_MODIFIER) {
-                        tokenValue = tokenValue.replace(/^[ \t\0\x0B]*/, '');
-                    }
-                }
-
-                // don't push empty TEXT tokens
-                if (!this.test(TokenType.TEXT) || (tokenValue.length > 0)) {
-                    tokens.push(new Token(current.type, tokenValue, current.line, current.column));
-                }
+            if (token) {
+                tokens.push(token);
             }
 
-            this.next();
-        }
-
-        // EOF
-        let current: Token = this.current;
-
-        tokens.push(new Token(
-            current.type,
-            current.value,
-            current.line,
-            current.column
-        ));
+        } while (this.next());
 
         return tokens;
     }
