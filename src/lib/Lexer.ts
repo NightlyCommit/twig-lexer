@@ -257,7 +257,7 @@ export class Lexer {
         );
 
         this.verbatimTagRegExp = new RegExp(
-            '(' + this.tagPair[0] + ')(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)' +
+            '^(' + this.tagPair[0] + ')(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)' +
             '(\\s*)(verbatim)(\\s*)' +
             '(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)(' + this.tagPair[1] + ')'
         );
