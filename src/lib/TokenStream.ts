@@ -27,6 +27,8 @@ export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Tok
         !token.test(TokenType.TRIMMING_MODIFIER) &&
         !token.test(TokenType.LINE_TRIMMING_MODIFIER)) {
         let tokenValue: string = token.value;
+        let tokenLine: number = token.line;
+        let tokenColumn: number = token.column;
 
         if (token.test(TokenType.EOF)) {
             return token;
@@ -41,6 +43,15 @@ export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Tok
 
             if (candidate.test(TokenType.CLOSING_QUOTE)) {
                 return new Token(TokenType.STRING, '', token.line, token.column);
+            }
+        }
+
+        if (token.test(TokenType.STRING)) {
+            let candidate = stream.look(-1);
+
+            if (candidate && candidate.test(TokenType.OPENING_QUOTE)) {
+                tokenLine = candidate.line;
+                tokenColumn = candidate.column;
             }
         }
 
@@ -84,7 +95,7 @@ export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Tok
 
             // don't push empty TEXT tokens
             if (!token.test(TokenType.TEXT) || (tokenValue.length > 0)) {
-                return new Token(token.type, tokenValue, token.line, token.column);
+                return new Token(token.type, tokenValue, tokenLine, tokenColumn);
             }
         }
     }
