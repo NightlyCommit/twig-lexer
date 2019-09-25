@@ -258,6 +258,40 @@ tape('Lexer', (test) => {
             test.end();
         });
 
+        test.test('surrounded by tags', (test) => {
+            let lexer = createLexer();
+            let tokens = lexer.tokenize(`{% if true %}{% verbatim %}foo{% endverbatim %}{% endif %}`);
+
+            testTokens(test, tokens, [
+                [TokenType.TAG_START, '{%', 1, 1],
+                [TokenType.WHITESPACE, ' ', 1, 3],
+                [TokenType.NAME, 'if', 1, 4],
+                [TokenType.WHITESPACE, ' ', 1, 6],
+                [TokenType.NAME, 'true', 1, 7],
+                [TokenType.WHITESPACE, ' ', 1, 11],
+                [TokenType.TAG_END, '%}', 1, 12],
+                [TokenType.TAG_START, '{%', 1, 14],
+                [TokenType.WHITESPACE, ' ', 1, 16],
+                [TokenType.NAME, 'verbatim', 1, 17],
+                [TokenType.WHITESPACE, ' ', 1, 25],
+                [TokenType.TAG_END, '%}', 1, 26],
+                [TokenType.TEXT, 'foo', 1, 28],
+                [TokenType.TAG_START, '{%', 1, 31],
+                [TokenType.WHITESPACE, ' ', 1, 33],
+                [TokenType.NAME, 'endverbatim', 1, 34],
+                [TokenType.WHITESPACE, ' ', 1, 45],
+                [TokenType.TAG_END, '%}', 1, 46],
+                [TokenType.TAG_START, '{%', 1, 48],
+                [TokenType.WHITESPACE, ' ', 1, 50],
+                [TokenType.NAME, 'endif', 1, 51],
+                [TokenType.WHITESPACE, ' ', 1, 56],
+                [TokenType.TAG_END, '%}', 1, 57],
+                [TokenType.EOF, null, 1, 59]
+            ]);
+
+            test.end();
+        });
+
         test.test('unclosed', (test) => {
             let lexer = createLexer();
 
@@ -866,9 +900,9 @@ bla
     test.test('lex arrow', (test) => {
         let lexer = createLexer();
         let tokens: Token[];
-    
+
         tokens = lexer.tokenize('{{ foo|filter(v => v > 1) }}');
-    
+
         testTokens(test, tokens, [
             [TokenType.VARIABLE_START, '{{', 1, 1],
             [TokenType.WHITESPACE, ' ', 1, 3],
@@ -890,7 +924,7 @@ bla
             [TokenType.VARIABLE_END, '}}', 1, 27],
             [TokenType.EOF, null, 1, 29]
         ]);
-    
+
         test.end();
     })
 
