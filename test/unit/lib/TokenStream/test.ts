@@ -193,6 +193,15 @@ STRING(foo)`);
         test.false(astVisitor(stream.current, stream), 'filters CLOSING_QUOTE tokens');
 
         stream = new TokenStream([
+            new Token(TokenType.OPENING_QUOTE, '"', 1, 1),
+            new Token(TokenType.STRING, 'foo', 1, 2)
+        ]);
+
+        stream.next();
+
+        test.same(astVisitor(stream.current, stream).column, 1, 'maps STRING tokens column to their corresponding OPENING_QUOTE');
+
+        stream = new TokenStream([
             new Token(TokenType.TEXT, 'foo\n ', 1, 1),
             new Token(TokenType.TAG_START, '{%', 2, 1),
             new Token(TokenType.TRIMMING_MODIFIER, '-', 2, 3)
