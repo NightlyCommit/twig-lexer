@@ -1068,6 +1068,18 @@ bla
                 [TokenType.EOF, null, 4, 1]
             ]);
 
+            test.test('except when using line whitespace trimming on the right', (test) => {
+                let tokens = lexer.tokenize(`{#foo~#}
+bar`);
+
+                testTokens(test, [tokens[3], tokens[4]], [
+                    [TokenType.COMMENT_END, '#}', 1, 7],
+                    [TokenType.TEXT, '\nbar', 1, 9]
+                ]);
+
+                test.end();
+            });
+
             test.end();
         });
 
@@ -1171,6 +1183,18 @@ bar`);
             [TokenType.TAG_END, '%}\n', 1, 6],
             [TokenType.TEXT, 'bar', 2, 1]
         ]);
+
+        test.test('except when using line whitespace trimming on the right', (test) => {
+            let tokens = lexer.tokenize(`{%foo~%}
+bar`);
+
+            testTokens(test, [tokens[3], tokens[4]], [
+                [TokenType.TAG_END, '%}', 1, 7],
+                [TokenType.TEXT, '\nbar', 1, 9]
+            ]);
+
+            test.end();
+        });
 
         test.test('except by the verbatim and endverbatim tags', (test) => {
             let tokens = lexer.tokenize(`{%verbatim%}

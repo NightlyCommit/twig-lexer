@@ -80,7 +80,7 @@ type LexerScope = {
 };
 
 export class Lexer {
-    private blockEndRegExp: RegExp;
+    private tagEndRegExp: RegExp;
     private closingBracketRegExp: RegExp;
     private column: number; // 1-based
     private commentEndRegExp: RegExp;
@@ -244,12 +244,16 @@ export class Lexer {
         this.operatorRegExp = createOperatorRegExp(this.operators);
         this.arrowOperatorRegExp = createOperatorRegExp(this.arrowOperator);
 
-        this.blockEndRegExp = new RegExp(
-            '^(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)(' + this.tagPair[1] + '(?:' + lineSeparators.join('|') + ')?)'
+        this.tagEndRegExp = new RegExp(
+            '^(' + this.trimmingModifier + '?)(' + this.tagPair[1] + '(?:' + lineSeparators.join('|') + ')?)' +
+            '|' +
+            '^(' + this.lineTrimingModifier + ')(' + this.tagPair[1] + ')'
         );
 
         this.commentEndRegExp = new RegExp(
-            '(\\s*)(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)(' + this.commentPair[1] + '(?:' + lineSeparators.join('|') + ')?)'
+            '(\\s*)(' + this.trimmingModifier + '?)(' + this.commentPair[1] + '(?:' + lineSeparators.join('|') + ')?)' +
+            '|' +
+            '(\\s*)(' + this.lineTrimingModifier + ')(' + this.commentPair[1] + ')'
         );
 
         this.variableEndRegExp = new RegExp(
@@ -331,7 +335,7 @@ export class Lexer {
                                 this.currentVarBlockColumn = this.column;
 
                                 this.pushToken(TokenType.COMMENT_START, tag);
-                                this.pusModifier(modifier);
+                                this.pushModifier(modifier);
                                 this.pushState(LexerState.COMMENT);
                                 break;
                             case this.tagPair[0]:
@@ -340,11 +344,11 @@ export class Lexer {
                                     this.currentVarBlockColumn = this.column;
 
                                     this.pushToken(TokenType.TAG_START, match[1]);
-                                    this.pusModifier(match[2]);
+                                    this.pushModifier(match[2]);
                                     this.pushToken(TokenType.WHITESPACE, match[3]);
                                     this.pushToken(TokenType.NAME, match[4]); // verbatim itself
                                     this.pushToken(TokenType.WHITESPACE, match[5]);
-                                    this.pusModifier(match[6]);
+                                    this.pushModifier(match[6]);
                                     this.pushToken(TokenType.TAG_END, match[7]);
                                     this.pushState(LexerState.VERBATIM);
                                 } else {
@@ -352,7 +356,7 @@ export class Lexer {
                                     this.currentVarBlockColumn = this.column;
 
                                     this.pushToken(TokenType.TAG_START, tag);
-                                    this.pusModifier(modifier);
+                                    this.pushModifier(modifier);
                                     this.pushState(LexerState.TAG);
                                 }
                                 break;
@@ -361,7 +365,7 @@ export class Lexer {
                                 this.currentVarBlockColumn = this.column;
 
                                 this.pushToken(TokenType.VARIABLE_START, tag);
-                                this.pusModifier(modifier);
+                                this.pushModifier(modifier);
                                 this.pushState(LexerState.VARIABLE);
 
                                 break;
@@ -466,11 +470,11 @@ export class Lexer {
         let code: string = this.source.substring(this.cursor);
         let match: RegExpExecArray;
 
-        if (!this.scope && ((match = this.blockEndRegExp.exec(code)) !== null)) {
-            let tag = match[2];
-            let modifier = match[1];
+        if (!this.scope && ((match = this.tagEndRegExp.exec(code)) !== null)) {
+            let tag = match[2] || match[4];
+            let modifier = match[1] || match[3];
 
-            this.pusModifier(modifier);
+            this.pushModifier(modifier);
             this.pushToken(TokenType.TAG_END, tag);
             this.popState();
         } else {
@@ -484,7 +488,7 @@ export class Lexer {
         let match: RegExpExecArray;
 
         if (!this.scope && ((match = this.variableEndRegExp.exec(this.source.substring(this.cursor))) !== null)) {
-            this.pusModifier(match[1]);
+            this.pushModifier(match[1]);
             this.pushToken(TokenType.VARIABLE_END, match[2]);
             this.popState();
         } else {
@@ -508,11 +512,11 @@ export class Lexer {
         this.pushToken(TokenType.TEXT, text);
 
         this.pushToken(TokenType.TAG_START, match[1]);
-        this.pusModifier(match[2]);
+        this.pushModifier(match[2]);
         this.pushToken(TokenType.WHITESPACE, match[3]);
         this.pushToken(TokenType.NAME, match[4]); // endverbatim itself
         this.pushToken(TokenType.WHITESPACE, match[5]);
-        this.pusModifier(match[6]);
+        this.pushModifier(match[6]);
         this.pushToken(TokenType.TAG_END, match[7]);
         this.popState();
     }
@@ -539,11 +543,13 @@ export class Lexer {
         }
 
         let text = this.source.substr(this.cursor, match.index);
+        let modifier = match[2] || match[5];
+        let value = match[3] || match[6];
 
         this.pushToken(TokenType.TEXT, text);
         this.lexWhitespace();
-        this.pusModifier(match[2]);
-        this.pushToken(TokenType.COMMENT_END, match[3]);
+        this.pushModifier(modifier);
+        this.pushToken(TokenType.COMMENT_END, value);
         this.popState();
     }
 
@@ -610,7 +616,7 @@ export class Lexer {
         }
     }
 
-    private pusModifier(modifier: string) {
+    private pushModifier(modifier: string) {
         if (modifier) {
             this.pushToken(modifier === this.trimmingModifier ? TokenType.TRIMMING_MODIFIER : TokenType.LINE_TRIMMING_MODIFIER, modifier);
         }
