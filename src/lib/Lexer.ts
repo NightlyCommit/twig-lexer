@@ -113,6 +113,7 @@ export class Lexer {
     private trimmingModifier: string = '-';
     private variableEndRegExp: RegExp;
     private verbatimTagRegExp: RegExp;
+    private lineTagRegExp: RegExp;
     private whitespaceRegExp: RegExp;
 
     /**
@@ -266,6 +267,10 @@ export class Lexer {
             '(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)(' + this.tagPair[1] + ')'
         );
 
+        this.lineTagRegExp = new RegExp(
+            '^(' + this.tagPair[0] + ')(\\s*)(line)(\\s+)(\\d+)(\\s*)(' + this.tagPair[1] + ')'
+        );
+
         this.endverbatimTagRegExp = new RegExp(
             '(' + this.tagPair[0] + ')(' + this.trimmingModifier + '|' + this.lineTrimingModifier + '?)' +
             '(\\s*)(endverbatim)(\\s*)' +
@@ -351,6 +356,25 @@ export class Lexer {
                                     this.pushModifier(match[6]);
                                     this.pushToken(TokenType.TAG_END, match[7]);
                                     this.pushState(LexerState.VERBATIM);
+                                } else if ((match = this.lineTagRegExp.exec(this.source.substring(this.cursor))) !== null) {
+                                    this.pushToken(TokenType.TAG_START, match[1]);
+
+                                    if (match[2].length > 0) {
+                                        this.pushToken(TokenType.WHITESPACE, match[2]);
+                                    }
+
+                                    this.pushToken(TokenType.NAME, match[3]); // line itself
+                                    this.pushToken(TokenType.WHITESPACE, match[4]);
+                                    this.pushToken(TokenType.NUMBER, match[5]);
+
+                                    if (match[6].length > 0) {
+                                        this.pushToken(TokenType.WHITESPACE, match[6]);
+                                    }
+
+                                    this.pushToken(TokenType.TAG_END, match[7]);
+
+                                    this.line = Number(match[5]);
+                                    this.column = 0;
                                 } else {
                                     this.currentVarBlockLine = this.line;
                                     this.currentVarBlockColumn = this.column;

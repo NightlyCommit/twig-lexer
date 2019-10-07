@@ -1213,5 +1213,42 @@ foo`);
         test.end();
     });
 
+    test.test('supports the line tag', (test) => {
+        let lexer = createLexer();
+        let tokens = lexer.tokenize(`foo
+{% line 5 %}
+bar`);
+
+        testTokens(test, tokens, [
+            [TokenType.TEXT, 'foo\n', 1, 1],
+            [TokenType.TAG_START, '{%', 2, 1],
+            [TokenType.WHITESPACE, ' ', 2, 3],
+            [TokenType.NAME, 'line', 2, 4],
+            [TokenType.WHITESPACE, ' ', 2, 8],
+            [TokenType.NUMBER, '5', 2, 9],
+            [TokenType.WHITESPACE, ' ', 2, 10],
+            [TokenType.TAG_END, '%}', 2, 11],
+            [TokenType.TEXT, '\nbar', 5, 0],
+            [TokenType.EOF, null, 6, 4]
+        ]);
+
+        tokens = lexer.tokenize(`foo
+{%line 5%}
+bar`);
+
+        testTokens(test, tokens, [
+            [TokenType.TEXT, 'foo\n', 1, 1],
+            [TokenType.TAG_START, '{%', 2, 1],
+            [TokenType.NAME, 'line', 2, 3],
+            [TokenType.WHITESPACE, ' ', 2, 7],
+            [TokenType.NUMBER, '5', 2, 8],
+            [TokenType.TAG_END, '%}', 2, 9],
+            [TokenType.TEXT, '\nbar', 5, 0],
+            [TokenType.EOF, null, 6, 4]
+        ]);
+
+        test.end();
+    });
+
     test.end();
 });
