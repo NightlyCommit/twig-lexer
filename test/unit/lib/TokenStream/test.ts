@@ -257,6 +257,12 @@ STRING(foo)`);
 
         test.true(astVisitor(stream.current, stream).test(TokenType.STRING, 'z\t'), 'converts C-style escape sequences');
 
+        stream = new TokenStream([
+            new Token(TokenType.TEXT, 'a\\nb', 1, 1)
+        ]);
+
+        test.true(astVisitor(stream.current, stream).test(TokenType.TEXT, 'a\\nb'), 'doesn\'t strip C slashes on TEXT tokens');
+
         test.test('replaces OPENING_QUOTE tokens immediately followed by a CLOSING_QUOTE token with empty string tokens', (test) => {
             let stream = new TokenStream([
                 new Token(TokenType.OPENING_QUOTE, '"', 1, 5),
