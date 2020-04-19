@@ -24,7 +24,7 @@ export const bracketPairs: [string, string][] = [['(', ')'], ['{', '}'], ['[', '
 /**
  * The regular expression pattern used to identify a double quoted string content.
  */
-export const doubleQuotedStringContentPattern: string = '[^#"\\\\]*(?:(?:\\\\\\\\.|#(?!{))[^#"\\\\]*)*';
+export const doubleQuotedStringContentPattern: string = '[^#"\\\\]*(?:(?:\\\\.|#(?!{))[^#"\\\\]*)*';
 
 /**
  * The regular expression pattern used to identify a double quoted string delimiter.

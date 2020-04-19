@@ -792,6 +792,26 @@ bla
             test.end();
         });
 
+        test.test('delimited by double quotes containing escaped double quotes', (test) => {
+            let lexer = createLexer();
+            let tokens = lexer.tokenize(`{{"string \\"interpolation\\": '#{var}'"}}`);
+
+            testTokens(test, tokens, [
+                [TokenType.VARIABLE_START, '{{', 1, 1],
+                [TokenType.OPENING_QUOTE, '"', 1, 3],
+                [TokenType.STRING, 'string \\"interpolation\\": \'', 1, 4],
+                [TokenType.INTERPOLATION_START, '#{', 1, 31],
+                [TokenType.NAME, 'var', 1, 33],
+                [TokenType.INTERPOLATION_END, '}', 1, 36],
+                [TokenType.STRING, "'", 1, 37],
+                [TokenType.CLOSING_QUOTE, '"', 1, 38],
+                [TokenType.VARIABLE_END, '}}', 1, 39],
+                [TokenType.EOF, null, 1, 41]
+            ]);
+
+            test.end();
+        });
+
         test.end();
     });
 
