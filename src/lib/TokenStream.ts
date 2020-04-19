@@ -57,13 +57,16 @@ export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Tok
 
         if (!token.test(TokenType.OPENING_QUOTE) && !token.test(TokenType.CLOSING_QUOTE)) {
             if (token.test(TokenType.TEXT) || token.test(TokenType.STRING)) {
-                // strip C slashes
-                tokenValue = stripcslashes(tokenValue);
                 // streamline line separators
                 tokenValue = tokenValue.replace(/\r\n|\r/g, '\n');
             } else if (token.test(TokenType.OPERATOR)) {
                 // remove unnecessary operator spaces
                 tokenValue = tokenValue.replace(/\s+/, ' ');
+            }
+
+            if (token.test(TokenType.STRING)) {
+                // strip C slashes
+                tokenValue = stripcslashes(tokenValue);
             }
 
             // handle whitespace control modifiers
