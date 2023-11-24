@@ -23,48 +23,48 @@ type TokenVisitor = (token: Token, stream: TokenStream) => Token;
  * @return {Token}
  */
 export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Token => {
-    if (!token.test(TokenType.WHITESPACE) &&
-        !token.test(TokenType.TRIMMING_MODIFIER) &&
-        !token.test(TokenType.LINE_TRIMMING_MODIFIER)) {
+    if (!token.test("WHITESPACE") &&
+        !token.test("TRIMMING_MODIFIER") &&
+        !token.test("LINE_TRIMMING_MODIFIER")) {
         let tokenValue: string = token.value;
         let tokenLine: number = token.line;
         let tokenColumn: number = token.column;
 
-        if (token.test(TokenType.EOF)) {
+        if (token.test("EOF")) {
             return token;
         }
 
-        if (token.test(TokenType.NUMBER)) {
+        if (token.test("NUMBER")) {
             return new Token(token.type, Number(token.value), token.line, token.column);
         }
 
-        if (token.test(TokenType.OPENING_QUOTE)) {
+        if (token.test("OPENING_QUOTE")) {
             let candidate = stream.look(1);
 
-            if (candidate.test(TokenType.CLOSING_QUOTE)) {
-                return new Token(TokenType.STRING, '', token.line, token.column);
+            if (candidate.test("CLOSING_QUOTE")) {
+                return new Token("STRING", '', token.line, token.column);
             }
         }
 
-        if (token.test(TokenType.STRING)) {
+        if (token.test("STRING")) {
             let candidate = stream.look(-1);
 
-            if (candidate && candidate.test(TokenType.OPENING_QUOTE)) {
+            if (candidate && candidate.test("OPENING_QUOTE")) {
                 tokenLine = candidate.line;
                 tokenColumn = candidate.column;
             }
         }
 
-        if (!token.test(TokenType.OPENING_QUOTE) && !token.test(TokenType.CLOSING_QUOTE)) {
-            if (token.test(TokenType.TEXT) || token.test(TokenType.STRING)) {
+        if (!token.test("OPENING_QUOTE") && !token.test("CLOSING_QUOTE")) {
+            if (token.test("TEXT") || token.test("STRING")) {
                 // streamline line separators
                 tokenValue = tokenValue.replace(/\r\n|\r/g, '\n');
-            } else if (token.test(TokenType.OPERATOR)) {
+            } else if (token.test("OPERATOR")) {
                 // remove unnecessary operator spaces
                 tokenValue = tokenValue.replace(/\s+/, ' ');
             }
 
-            if (token.test(TokenType.STRING)) {
+            if (token.test("STRING")) {
                 // strip C slashes
                 tokenValue = stripcslashes(tokenValue);
             }
@@ -75,11 +75,11 @@ export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Tok
             wstCandidate = stream.look(2);
 
             if (wstCandidate) {
-                if (wstCandidate.type === TokenType.TRIMMING_MODIFIER) {
+                if (wstCandidate.type === "TRIMMING_MODIFIER") {
                     tokenValue = tokenValue.replace(/\s*$/, '');
                 }
 
-                if (wstCandidate.type === TokenType.LINE_TRIMMING_MODIFIER) {
+                if (wstCandidate.type === "LINE_TRIMMING_MODIFIER") {
                     tokenValue = tokenValue.replace(/[ \t\0\x0B]*$/, '');
                 }
             }
@@ -87,17 +87,17 @@ export const astVisitor: TokenVisitor = (token: Token, stream: TokenStream): Tok
             wstCandidate = stream.look(-2);
 
             if (wstCandidate) {
-                if (wstCandidate.type === TokenType.TRIMMING_MODIFIER) {
+                if (wstCandidate.type === "TRIMMING_MODIFIER") {
                     tokenValue = tokenValue.replace(/^\s*/, '');
                 }
 
-                if (wstCandidate.type === TokenType.LINE_TRIMMING_MODIFIER) {
+                if (wstCandidate.type === "LINE_TRIMMING_MODIFIER") {
                     tokenValue = tokenValue.replace(/^[ \t\0\x0B]*/, '');
                 }
             }
 
-            // don't push empty TEXT tokens
-            if (!token.test(TokenType.TEXT) || (tokenValue.length > 0)) {
+            // don't push empty "TEXT" tokens
+            if (!token.test("TEXT") || (tokenValue.length > 0)) {
                 return new Token(token.type, tokenValue, tokenLine, tokenColumn);
             }
         }

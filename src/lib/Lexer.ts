@@ -1,6 +1,6 @@
 import {Token} from "./Token";
-import {TokenType} from "./TokenType";
 import {SyntaxError} from "./SyntaxError";
+import {TokenType} from "./TokenType";
 
 enum LexerState {
     COMMENT = 'COMMENT',
@@ -328,7 +328,7 @@ export class Lexer {
                     let match = this.statementStartRegExp.exec(data);
 
                     // push the text
-                    this.pushToken(TokenType.TEXT, match ? data.substr(0, match.index) : data);
+                    this.pushToken("TEXT", match ? data.substr(0, match.index) : data);
 
                     if (match) {
                         let tag: string = match[1];
@@ -339,7 +339,7 @@ export class Lexer {
                                 this.currentVarBlockLine = this.line;
                                 this.currentVarBlockColumn = this.column;
 
-                                this.pushToken(TokenType.COMMENT_START, tag);
+                                this.pushToken("COMMENT_START", tag);
                                 this.pushModifier(modifier);
                                 this.pushState(LexerState.COMMENT);
                                 break;
@@ -348,30 +348,30 @@ export class Lexer {
                                     this.currentVarBlockLine = this.line;
                                     this.currentVarBlockColumn = this.column;
 
-                                    this.pushToken(TokenType.TAG_START, match[1]);
+                                    this.pushToken("TAG_START", match[1]);
                                     this.pushModifier(match[2]);
-                                    this.pushToken(TokenType.WHITESPACE, match[3]);
-                                    this.pushToken(TokenType.NAME, match[4]); // verbatim itself
-                                    this.pushToken(TokenType.WHITESPACE, match[5]);
+                                    this.pushToken("WHITESPACE", match[3]);
+                                    this.pushToken("NAME", match[4]); // verbatim itself
+                                    this.pushToken("WHITESPACE", match[5]);
                                     this.pushModifier(match[6]);
-                                    this.pushToken(TokenType.TAG_END, match[7]);
+                                    this.pushToken("TAG_END", match[7]);
                                     this.pushState(LexerState.VERBATIM);
                                 } else if ((match = this.lineTagRegExp.exec(this.source.substring(this.cursor))) !== null) {
-                                    this.pushToken(TokenType.TAG_START, match[1]);
+                                    this.pushToken("TAG_START", match[1]);
 
                                     if (match[2].length > 0) {
-                                        this.pushToken(TokenType.WHITESPACE, match[2]);
+                                        this.pushToken("WHITESPACE", match[2]);
                                     }
 
-                                    this.pushToken(TokenType.NAME, match[3]); // line itself
-                                    this.pushToken(TokenType.WHITESPACE, match[4]);
-                                    this.pushToken(TokenType.NUMBER, match[5]);
+                                    this.pushToken("NAME", match[3]); // line itself
+                                    this.pushToken("WHITESPACE", match[4]);
+                                    this.pushToken("NUMBER", match[5]);
 
                                     if (match[6].length > 0) {
-                                        this.pushToken(TokenType.WHITESPACE, match[6]);
+                                        this.pushToken("WHITESPACE", match[6]);
                                     }
 
-                                    this.pushToken(TokenType.TAG_END, match[7]);
+                                    this.pushToken("TAG_END", match[7]);
 
                                     this.line = Number(match[5]);
                                     this.column = 0;
@@ -379,7 +379,7 @@ export class Lexer {
                                     this.currentVarBlockLine = this.line;
                                     this.currentVarBlockColumn = this.column;
 
-                                    this.pushToken(TokenType.TAG_START, tag);
+                                    this.pushToken("TAG_START", tag);
                                     this.pushModifier(modifier);
                                     this.pushState(LexerState.TAG);
                                 }
@@ -388,7 +388,7 @@ export class Lexer {
                                 this.currentVarBlockLine = this.line;
                                 this.currentVarBlockColumn = this.column;
 
-                                this.pushToken(TokenType.VARIABLE_START, tag);
+                                this.pushToken("VARIABLE_START", tag);
                                 this.pushModifier(modifier);
                                 this.pushState(LexerState.VARIABLE);
 
@@ -398,7 +398,7 @@ export class Lexer {
             }
         }
 
-        this.pushToken(TokenType.EOF, null);
+        this.pushToken("EOF", null);
 
         if (this.state == LexerState.VARIABLE) {
             throw new SyntaxError(`Unclosed variable opened at {${this.currentVarBlockLine}:${this.currentVarBlockColumn}}.`, this.line, this.column);
@@ -420,28 +420,28 @@ export class Lexer {
 
         // test operator
         if ((match = this.testOperatorRegExp.exec(candidate)) !== null) {
-            this.pushToken(TokenType.TEST_OPERATOR, match[0]);
+            this.pushToken("TEST_OPERATOR", match[0]);
         }
         // arrow
         else if ((match = this.arrowOperatorRegExp.exec(candidate)) !== null) {
-            this.pushToken(TokenType.ARROW, match[0]);
+            this.pushToken("ARROW", match[0]);
         }
         // operator
         else if ((match = this.operatorRegExp.exec(candidate)) !== null) {
-            this.pushToken(TokenType.OPERATOR, match[0]);
+            this.pushToken("OPERATOR", match[0]);
         }
         // name
         else if ((match = this.nameRegExp.exec(candidate)) !== null) {
-            this.pushToken(TokenType.NAME, match[0]);
+            this.pushToken("NAME", match[0]);
         }
         // number
         else if ((match = this.numberRegExp.exec(candidate)) !== null) {
-            this.pushToken(TokenType.NUMBER, match[0]);
+            this.pushToken("NUMBER", match[0]);
         }
         // opening bracket
         else if (this.openingBracketRegExp.test(singleCharacterCandidate)) {
             this.pushScope(singleCharacterCandidate);
-            this.pushToken(TokenType.PUNCTUATION, singleCharacterCandidate);
+            this.pushToken("PUNCTUATION", singleCharacterCandidate);
         }
         // closing bracket
         else if (this.closingBracketRegExp.test(singleCharacterCandidate)) {
@@ -453,12 +453,12 @@ export class Lexer {
                 throw new SyntaxError(`Unclosed bracket "${this.scope.value}" opened at {${this.scope.line}:${this.scope.column}}.`, this.line, this.column);
             }
 
-            this.pushToken(TokenType.PUNCTUATION, singleCharacterCandidate);
+            this.pushToken("PUNCTUATION", singleCharacterCandidate);
             this.popScope();
         }
         // punctuation
         else if (this.punctuationRegExp.test(singleCharacterCandidate)) {
-            this.pushToken(TokenType.PUNCTUATION, singleCharacterCandidate);
+            this.pushToken("PUNCTUATION", singleCharacterCandidate);
         }
         // string
         else if ((match = this.stringRegExp.exec(candidate)) !== null) {
@@ -466,20 +466,20 @@ export class Lexer {
             let value = match[2] || match[5];
             let closingBracket = match[3] || match[6];
 
-            this.pushToken(TokenType.OPENING_QUOTE, openingBracket);
+            this.pushToken("OPENING_QUOTE", openingBracket);
 
             if (value !== undefined) {
-                this.pushToken(TokenType.STRING, value);
+                this.pushToken("STRING", value);
             }
 
-            this.pushToken(TokenType.CLOSING_QUOTE, closingBracket);
+            this.pushToken("CLOSING_QUOTE", closingBracket);
         }
         // double quoted string
         else if ((match = this.doubleQuotedStringDelimiterRegExp.exec(candidate)) !== null) {
             let value = match[0];
 
             this.pushScope(value, value);
-            this.pushToken(TokenType.OPENING_QUOTE, value);
+            this.pushToken("OPENING_QUOTE", value);
             this.pushState(LexerState.DOUBLE_QUOTED_STRING);
         }
         // unlexable
@@ -499,7 +499,7 @@ export class Lexer {
             let modifier = match[1] || match[3];
 
             this.pushModifier(modifier);
-            this.pushToken(TokenType.TAG_END, tag);
+            this.pushToken("TAG_END", tag);
             this.popState();
         } else {
             this.lexExpression();
@@ -513,7 +513,7 @@ export class Lexer {
 
         if (!this.scope && ((match = this.variableEndRegExp.exec(this.source.substring(this.cursor))) !== null)) {
             this.pushModifier(match[1]);
-            this.pushToken(TokenType.VARIABLE_END, match[2]);
+            this.pushToken("VARIABLE_END", match[2]);
             this.popState();
         } else {
             this.lexExpression();
@@ -533,15 +533,15 @@ export class Lexer {
 
         let text = this.source.substr(this.cursor, match.index);
 
-        this.pushToken(TokenType.TEXT, text);
+        this.pushToken("TEXT", text);
 
-        this.pushToken(TokenType.TAG_START, match[1]);
+        this.pushToken("TAG_START", match[1]);
         this.pushModifier(match[2]);
-        this.pushToken(TokenType.WHITESPACE, match[3]);
-        this.pushToken(TokenType.NAME, match[4]); // endverbatim itself
-        this.pushToken(TokenType.WHITESPACE, match[5]);
+        this.pushToken("WHITESPACE", match[3]);
+        this.pushToken("NAME", match[4]); // endverbatim itself
+        this.pushToken("WHITESPACE", match[5]);
         this.pushModifier(match[6]);
-        this.pushToken(TokenType.TAG_END, match[7]);
+        this.pushToken("TAG_END", match[7]);
         this.popState();
     }
 
@@ -550,7 +550,7 @@ export class Lexer {
         let candidate: string = this.source.substring(this.cursor);
 
         if ((match = this.whitespaceRegExp.exec(candidate)) !== null) {
-            this.pushToken(TokenType.WHITESPACE, match[0]);
+            this.pushToken("WHITESPACE", match[0]);
         }
     }
 
@@ -570,10 +570,10 @@ export class Lexer {
         let modifier = match[2] || match[5];
         let value = match[3] || match[6];
 
-        this.pushToken(TokenType.TEXT, text);
+        this.pushToken("TEXT", text);
         this.lexWhitespace();
         this.pushModifier(modifier);
-        this.pushToken(TokenType.COMMENT_END, value);
+        this.pushToken("COMMENT_END", value);
         this.popState();
     }
 
@@ -583,14 +583,14 @@ export class Lexer {
         if ((match = this.interpolationStartRegExp.exec(this.source.substring(this.cursor))) !== null) {
             let tag = match[1];
 
-            this.pushToken(TokenType.INTERPOLATION_START, tag);
-            this.pushToken(TokenType.WHITESPACE, match[2]);
+            this.pushToken("INTERPOLATION_START", tag);
+            this.pushToken("WHITESPACE", match[2]);
             this.pushScope(tag, this.interpolationPair[1]);
             this.pushState(LexerState.INTERPOLATION);
         } else if (((match = this.doubleQuotedStringContentRegExp.exec(this.source.substring(this.cursor))) !== null) && (match[0].length > 0)) {
-            this.pushToken(TokenType.STRING, match[0]);
+            this.pushToken("STRING", match[0]);
         } else {
-            this.pushToken(TokenType.CLOSING_QUOTE, this.scope.value);
+            this.pushToken("CLOSING_QUOTE", this.scope.value);
             this.popScope();
             this.popState();
         }
@@ -603,8 +603,8 @@ export class Lexer {
             let tag = match[2];
             let whitespace = match[1] || '';
 
-            this.pushToken(TokenType.WHITESPACE, whitespace);
-            this.pushToken(TokenType.INTERPOLATION_END, tag);
+            this.pushToken("WHITESPACE", whitespace);
+            this.pushToken("INTERPOLATION_END", tag);
             this.popScope();
             this.popState();
         } else {
@@ -627,7 +627,7 @@ export class Lexer {
     }
 
     private pushToken(type: TokenType, value: any) {
-        if ((type === TokenType.TEXT || type === TokenType.WHITESPACE) && (value.length < 1)) {
+        if ((type === "TEXT" || type === "WHITESPACE") && (value.length < 1)) {
             return;
         }
 
@@ -642,7 +642,7 @@ export class Lexer {
 
     private pushModifier(modifier: string) {
         if (modifier) {
-            this.pushToken(modifier === this.trimmingModifier ? TokenType.TRIMMING_MODIFIER : TokenType.LINE_TRIMMING_MODIFIER, modifier);
+            this.pushToken(modifier === this.trimmingModifier ? "TRIMMING_MODIFIER" : "LINE_TRIMMING_MODIFIER", modifier);
         }
     }
 
