@@ -1,4 +1,4 @@
-import {TokenType, typeToString} from "./TokenType";
+import {TokenType} from "./TokenType";
 
 export class Token {
     private readonly _type: TokenType;
@@ -73,7 +73,7 @@ export class Token {
      * @return {string}
      */
     public toString(): string {
-        return `${typeToString(this.type, true)}(${this.value ? this.value : ''})`;
+        return `${this.type}(${this.value ? this.value : ''})`;
     }
 
     /**

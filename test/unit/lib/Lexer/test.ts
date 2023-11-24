@@ -1,8 +1,8 @@
 import * as tape from 'tape';
 import {Lexer} from '../../../../src/lib/Lexer';
 import {Token} from "../../../../src/lib/Token";
-import {TokenType, typeToString} from "../../../../src/lib/TokenType";
 import {SyntaxError} from "../../../../src/lib/SyntaxError";
+import {TokenType} from "../../../../src/index";
 
 class CustomLexer extends Lexer {
     constructor() {
@@ -29,7 +29,7 @@ let testTokens = (test: tape.Test, tokens: Token[], data: [TokenType, any, numbe
         let line = data[index][2];
         let column = data[index][3];
 
-        test.same(token.type, type, 'type should be "' + typeToString(type) + '"');
+        test.same(token.type, type, 'type should be "' + type + '"');
         test.looseEqual(token.value, value, token.type + ' value should be "' + ((value && value.length > 80) ? value.substr(0, 77) + '...' : value) + '"');
         test.same(token.line, line, 'line should be ' + line);
         test.same(token.column, column, 'column should be ' + column);
@@ -45,12 +45,12 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize('{{foo.foo}}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.NAME, 'foo', 1, 3],
-                [TokenType.PUNCTUATION, '.', 1, 6],
-                [TokenType.NAME, 'foo', 1, 7],
-                [TokenType.VARIABLE_END, '}}', 1, 10],
-                [TokenType.EOF, null, 1, 12]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["NAME", 'foo', 1, 3],
+                ["PUNCTUATION", '.', 1, 6],
+                ["NAME", 'foo', 1, 7],
+                ["VARIABLE_END", '}}', 1, 10],
+                ["EOF", null, 1, 12]
             ]);
 
             test.end();
@@ -61,8 +61,8 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize('{{foo[foo]}}');
 
             testTokens(test, [tokens[1], tokens[3]], [
-                [TokenType.NAME, 'foo', 1, 3],
-                [TokenType.NAME, 'foo', 1, 7],
+                ["NAME", 'foo', 1, 3],
+                ["NAME", 'foo', 1, 7],
             ]);
 
             test.end();
@@ -73,21 +73,21 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize('{{foo[foo.5[foo][foo]]}}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.NAME, 'foo', 1, 3],
-                [TokenType.PUNCTUATION, '[', 1, 6],
-                [TokenType.NAME, 'foo', 1, 7],
-                [TokenType.PUNCTUATION, '.', 1, 10],
-                [TokenType.NUMBER, 5, 1, 11],
-                [TokenType.PUNCTUATION, '[', 1, 12],
-                [TokenType.NAME, 'foo', 1, 13],
-                [TokenType.PUNCTUATION, ']', 1, 16],
-                [TokenType.PUNCTUATION, '[', 1, 17],
-                [TokenType.NAME, 'foo', 1, 18],
-                [TokenType.PUNCTUATION, ']', 1, 21],
-                [TokenType.PUNCTUATION, ']', 1, 22],
-                [TokenType.VARIABLE_END, '}}', 1, 23],
-                [TokenType.EOF, null, 1, 25]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["NAME", 'foo', 1, 3],
+                ["PUNCTUATION", '[', 1, 6],
+                ["NAME", 'foo', 1, 7],
+                ["PUNCTUATION", '.', 1, 10],
+                ["NUMBER", 5, 1, 11],
+                ["PUNCTUATION", '[', 1, 12],
+                ["NAME", 'foo', 1, 13],
+                ["PUNCTUATION", ']', 1, 16],
+                ["PUNCTUATION", '[', 1, 17],
+                ["NAME", 'foo', 1, 18],
+                ["PUNCTUATION", ']', 1, 21],
+                ["PUNCTUATION", ']', 1, 22],
+                ["VARIABLE_END", '}}', 1, 23],
+                ["EOF", null, 1, 25]
             ]);
 
             test.end();
@@ -99,15 +99,15 @@ tape('Lexer', (test) => {
                 let tokens = lexer.tokenize('{{foo["bar"]}}');
 
                 testTokens(test, tokens, [
-                    [TokenType.VARIABLE_START, '{{', 1, 1],
-                    [TokenType.NAME, 'foo', 1, 3],
-                    [TokenType.PUNCTUATION, '[', 1, 6],
-                    [TokenType.OPENING_QUOTE, '"', 1, 7],
-                    [TokenType.STRING, 'bar', 1, 8],
-                    [TokenType.CLOSING_QUOTE, '"', 1, 11],
-                    [TokenType.PUNCTUATION, ']', 1, 12],
-                    [TokenType.VARIABLE_END, '}}', 1, 13],
-                    [TokenType.EOF, null, 1, 15]
+                    ["VARIABLE_START", '{{', 1, 1],
+                    ["NAME", 'foo', 1, 3],
+                    ["PUNCTUATION", '[', 1, 6],
+                    ["OPENING_QUOTE", '"', 1, 7],
+                    ["STRING", 'bar', 1, 8],
+                    ["CLOSING_QUOTE", '"', 1, 11],
+                    ["PUNCTUATION", ']', 1, 12],
+                    ["VARIABLE_END", '}}', 1, 13],
+                    ["EOF", null, 1, 15]
                 ]);
 
                 test.end();
@@ -118,17 +118,17 @@ tape('Lexer', (test) => {
                 let tokens = lexer.tokenize('{{foo["#{bar}"]}}');
 
                 testTokens(test, tokens, [
-                    [TokenType.VARIABLE_START, '{{', 1, 1],
-                    [TokenType.NAME, 'foo', 1, 3],
-                    [TokenType.PUNCTUATION, '[', 1, 6],
-                    [TokenType.OPENING_QUOTE, '"', 1, 7],
-                    [TokenType.INTERPOLATION_START, '#{', 1, 8],
-                    [TokenType.NAME, 'bar', 1, 10],
-                    [TokenType.INTERPOLATION_END, '}', 1, 13],
-                    [TokenType.CLOSING_QUOTE, '"', 1, 14],
-                    [TokenType.PUNCTUATION, ']', 1, 15],
-                    [TokenType.VARIABLE_END, '}}', 1, 16],
-                    [TokenType.EOF, null, 1, 18]
+                    ["VARIABLE_START", '{{', 1, 1],
+                    ["NAME", 'foo', 1, 3],
+                    ["PUNCTUATION", '[', 1, 6],
+                    ["OPENING_QUOTE", '"', 1, 7],
+                    ["INTERPOLATION_START", '#{', 1, 8],
+                    ["NAME", 'bar', 1, 10],
+                    ["INTERPOLATION_END", '}', 1, 13],
+                    ["CLOSING_QUOTE", '"', 1, 14],
+                    ["PUNCTUATION", ']', 1, 15],
+                    ["VARIABLE_END", '}}', 1, 16],
+                    ["EOF", null, 1, 18]
                 ]);
 
                 test.end();
@@ -145,26 +145,26 @@ tape('Lexer', (test) => {
         let tokens = lexer.tokenize('{{ {"a":{"b":"c"}} }}');
 
         testTokens(test, tokens, [
-            [TokenType.VARIABLE_START, '{{', 1, 1],
-            [TokenType.WHITESPACE, ' ', 1, 3],
-            [TokenType.PUNCTUATION, '{', 1, 4],
-            [TokenType.OPENING_QUOTE, '"', 1, 5],
-            [TokenType.STRING, 'a', 1, 6],
-            [TokenType.CLOSING_QUOTE, '"', 1, 7],
-            [TokenType.PUNCTUATION, ':', 1, 8],
-            [TokenType.PUNCTUATION, '{', 1, 9],
-            [TokenType.OPENING_QUOTE, '"', 1, 10],
-            [TokenType.STRING, 'b', 1, 11],
-            [TokenType.CLOSING_QUOTE, '"', 1, 12],
-            [TokenType.PUNCTUATION, ':', 1, 13],
-            [TokenType.OPENING_QUOTE, '"', 1, 14],
-            [TokenType.STRING, 'c', 1, 15],
-            [TokenType.CLOSING_QUOTE, '"', 1, 16],
-            [TokenType.PUNCTUATION, '}', 1, 17],
-            [TokenType.PUNCTUATION, '}', 1, 18],
-            [TokenType.WHITESPACE, ' ', 1, 19],
-            [TokenType.VARIABLE_END, '}}', 1, 20],
-            [TokenType.EOF, null, 1, 22]
+            ["VARIABLE_START", '{{', 1, 1],
+            ["WHITESPACE", ' ', 1, 3],
+            ["PUNCTUATION", '{', 1, 4],
+            ["OPENING_QUOTE", '"', 1, 5],
+            ["STRING", 'a', 1, 6],
+            ["CLOSING_QUOTE", '"', 1, 7],
+            ["PUNCTUATION", ':', 1, 8],
+            ["PUNCTUATION", '{', 1, 9],
+            ["OPENING_QUOTE", '"', 1, 10],
+            ["STRING", 'b', 1, 11],
+            ["CLOSING_QUOTE", '"', 1, 12],
+            ["PUNCTUATION", ':', 1, 13],
+            ["OPENING_QUOTE", '"', 1, 14],
+            ["STRING", 'c', 1, 15],
+            ["CLOSING_QUOTE", '"', 1, 16],
+            ["PUNCTUATION", '}', 1, 17],
+            ["PUNCTUATION", '}', 1, 18],
+            ["WHITESPACE", ' ', 1, 19],
+            ["VARIABLE_END", '}}', 1, 20],
+            ["EOF", null, 1, 22]
         ]);
 
         test.test('with non-opening bracket', (test) => {
@@ -195,18 +195,18 @@ tape('Lexer', (test) => {
 {% endverbatim %}`);
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'verbatim', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 12],
-                [TokenType.TAG_END, '%}', 1, 13],
-                [TokenType.TEXT, '\n    {{ "bla" }}\n', 1, 15],
-                [TokenType.TAG_START, '{%', 3, 1],
-                [TokenType.WHITESPACE, ' ', 3, 3],
-                [TokenType.NAME, 'endverbatim', 3, 4],
-                [TokenType.WHITESPACE, ' ', 3, 15],
-                [TokenType.TAG_END, '%}', 3, 16],
-                [TokenType.EOF, null, 3, 18]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'verbatim', 1, 4],
+                ["WHITESPACE", ' ', 1, 12],
+                ["TAG_END", '%}', 1, 13],
+                ["TEXT", '\n    {{ "bla" }}\n', 1, 15],
+                ["TAG_START", '{%', 3, 1],
+                ["WHITESPACE", ' ', 3, 3],
+                ["NAME", 'endverbatim', 3, 4],
+                ["WHITESPACE", ' ', 3, 15],
+                ["TAG_END", '%}', 3, 16],
+                ["EOF", null, 3, 18]
             ]);
 
             test.end();
@@ -217,18 +217,18 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize(`{% verbatim %}${'*'.repeat(100000)}{% endverbatim %}`);
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'verbatim', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 12],
-                [TokenType.TAG_END, '%}', 1, 13],
-                [TokenType.TEXT, '*'.repeat(100000), 1, 15],
-                [TokenType.TAG_START, '{%', 1, 100015],
-                [TokenType.WHITESPACE, ' ', 1, 100017],
-                [TokenType.NAME, 'endverbatim', 1, 100018],
-                [TokenType.WHITESPACE, ' ', 1, 100029],
-                [TokenType.TAG_END, '%}', 1, 100030],
-                [TokenType.EOF, null, 1, 100032]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'verbatim', 1, 4],
+                ["WHITESPACE", ' ', 1, 12],
+                ["TAG_END", '%}', 1, 13],
+                ["TEXT", '*'.repeat(100000), 1, 15],
+                ["TAG_START", '{%', 1, 100015],
+                ["WHITESPACE", ' ', 1, 100017],
+                ["NAME", 'endverbatim', 1, 100018],
+                ["WHITESPACE", ' ', 1, 100029],
+                ["TAG_END", '%}', 1, 100030],
+                ["EOF", null, 1, 100032]
             ]);
 
             test.end();
@@ -239,20 +239,20 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize(`foo{% verbatim %}{{bla}}{% endverbatim %}foo`);
 
             testTokens(test, tokens, [
-                [TokenType.TEXT, 'foo', 1, 1],
-                [TokenType.TAG_START, '{%', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 6],
-                [TokenType.NAME, 'verbatim', 1, 7],
-                [TokenType.WHITESPACE, ' ', 1, 15],
-                [TokenType.TAG_END, '%}', 1, 16],
-                [TokenType.TEXT, '{{bla}}', 1, 18],
-                [TokenType.TAG_START, '{%', 1, 25],
-                [TokenType.WHITESPACE, ' ', 1, 27],
-                [TokenType.NAME, 'endverbatim', 1, 28],
-                [TokenType.WHITESPACE, ' ', 1, 39],
-                [TokenType.TAG_END, '%}', 1, 40],
-                [TokenType.TEXT, 'foo', 1, 42],
-                [TokenType.EOF, null, 1, 45]
+                ["TEXT", 'foo', 1, 1],
+                ["TAG_START", '{%', 1, 4],
+                ["WHITESPACE", ' ', 1, 6],
+                ["NAME", 'verbatim', 1, 7],
+                ["WHITESPACE", ' ', 1, 15],
+                ["TAG_END", '%}', 1, 16],
+                ["TEXT", '{{bla}}', 1, 18],
+                ["TAG_START", '{%', 1, 25],
+                ["WHITESPACE", ' ', 1, 27],
+                ["NAME", 'endverbatim', 1, 28],
+                ["WHITESPACE", ' ', 1, 39],
+                ["TAG_END", '%}', 1, 40],
+                ["TEXT", 'foo', 1, 42],
+                ["EOF", null, 1, 45]
             ]);
 
             test.end();
@@ -263,30 +263,30 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize(`{% if true %}{% verbatim %}foo{% endverbatim %}{% endif %}`);
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'if', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 6],
-                [TokenType.NAME, 'true', 1, 7],
-                [TokenType.WHITESPACE, ' ', 1, 11],
-                [TokenType.TAG_END, '%}', 1, 12],
-                [TokenType.TAG_START, '{%', 1, 14],
-                [TokenType.WHITESPACE, ' ', 1, 16],
-                [TokenType.NAME, 'verbatim', 1, 17],
-                [TokenType.WHITESPACE, ' ', 1, 25],
-                [TokenType.TAG_END, '%}', 1, 26],
-                [TokenType.TEXT, 'foo', 1, 28],
-                [TokenType.TAG_START, '{%', 1, 31],
-                [TokenType.WHITESPACE, ' ', 1, 33],
-                [TokenType.NAME, 'endverbatim', 1, 34],
-                [TokenType.WHITESPACE, ' ', 1, 45],
-                [TokenType.TAG_END, '%}', 1, 46],
-                [TokenType.TAG_START, '{%', 1, 48],
-                [TokenType.WHITESPACE, ' ', 1, 50],
-                [TokenType.NAME, 'endif', 1, 51],
-                [TokenType.WHITESPACE, ' ', 1, 56],
-                [TokenType.TAG_END, '%}', 1, 57],
-                [TokenType.EOF, null, 1, 59]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'if', 1, 4],
+                ["WHITESPACE", ' ', 1, 6],
+                ["NAME", 'true', 1, 7],
+                ["WHITESPACE", ' ', 1, 11],
+                ["TAG_END", '%}', 1, 12],
+                ["TAG_START", '{%', 1, 14],
+                ["WHITESPACE", ' ', 1, 16],
+                ["NAME", 'verbatim', 1, 17],
+                ["WHITESPACE", ' ', 1, 25],
+                ["TAG_END", '%}', 1, 26],
+                ["TEXT", 'foo', 1, 28],
+                ["TAG_START", '{%', 1, 31],
+                ["WHITESPACE", ' ', 1, 33],
+                ["NAME", 'endverbatim', 1, 34],
+                ["WHITESPACE", ' ', 1, 45],
+                ["TAG_END", '%}', 1, 46],
+                ["TAG_START", '{%', 1, 48],
+                ["WHITESPACE", ' ', 1, 50],
+                ["NAME", 'endif', 1, 51],
+                ["WHITESPACE", ' ', 1, 56],
+                ["TAG_END", '%}', 1, 57],
+                ["EOF", null, 1, 59]
             ]);
 
             test.end();
@@ -321,10 +321,10 @@ tape('Lexer', (test) => {
             let tokens = lexer.tokenize(source);
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.NAME, 'bla', 1, 3],
-                [TokenType.VARIABLE_END, '}}', 1, 6],
-                [TokenType.EOF, null, 1, 8]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["NAME", 'bla', 1, 3],
+                ["VARIABLE_END", '}}', 1, 6],
+                ["EOF", null, 1, 8]
             ]);
 
             test.end();
@@ -338,12 +338,12 @@ bla }}`;
             let tokens = lexer.tokenize(source);
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, '\n', 1, 3],
-                [TokenType.NAME, 'bla', 2, 1],
-                [TokenType.WHITESPACE, ' ', 2, 4],
-                [TokenType.VARIABLE_END, '}}', 2, 5],
-                [TokenType.EOF, null, 2, 7]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", '\n', 1, 3],
+                ["NAME", 'bla', 2, 1],
+                ["WHITESPACE", ' ', 2, 4],
+                ["VARIABLE_END", '}}', 2, 5],
+                ["EOF", null, 2, 7]
             ]);
 
             test.end();
@@ -356,12 +356,12 @@ bla }}`;
             let tokens = lexer.tokenize(source);
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'x'.repeat(100000), 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 100004],
-                [TokenType.VARIABLE_END, '}}', 1, 100005],
-                [TokenType.EOF, null, 1, 100007]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'x'.repeat(100000), 1, 4],
+                ["WHITESPACE", ' ', 1, 100004],
+                ["VARIABLE_END", '}}', 1, 100005],
+                ["EOF", null, 1, 100007]
             ]);
 
             test.end();
@@ -377,7 +377,7 @@ bla }}`;
                 test.comment(`${code}: {{ ${char} }}`);
 
                 testTokens(test, [tokens[2]], [
-                    [TokenType.NAME, char, 1, 4]
+                    ["NAME", char, 1, 4]
                 ]);
             }
 
@@ -389,14 +389,14 @@ bla }}`;
             let tokens = lexer.tokenize('{{ f() }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'f', 1, 4],
-                [TokenType.PUNCTUATION, '(', 1, 5],
-                [TokenType.PUNCTUATION, ')', 1, 6],
-                [TokenType.WHITESPACE, ' ', 1, 7],
-                [TokenType.VARIABLE_END, '}}', 1, 8],
-                [TokenType.EOF, null, 1, 10]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'f', 1, 4],
+                ["PUNCTUATION", '(', 1, 5],
+                ["PUNCTUATION", ')', 1, 6],
+                ["WHITESPACE", ' ', 1, 7],
+                ["VARIABLE_END", '}}', 1, 8],
+                ["EOF", null, 1, 10]
             ]);
 
             test.end();
@@ -407,17 +407,17 @@ bla }}`;
             let tokens = lexer.tokenize('{{ f("foo {{bar}}") }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'f', 1, 4],
-                [TokenType.PUNCTUATION, '(', 1, 5],
-                [TokenType.OPENING_QUOTE, '"', 1, 6],
-                [TokenType.STRING, 'foo {{bar}}', 1, 7],
-                [TokenType.CLOSING_QUOTE, '"', 1, 18],
-                [TokenType.PUNCTUATION, ')', 1, 19],
-                [TokenType.WHITESPACE, ' ', 1, 20],
-                [TokenType.VARIABLE_END, '}}', 1, 21],
-                [TokenType.EOF, null, 1, 23]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'f', 1, 4],
+                ["PUNCTUATION", '(', 1, 5],
+                ["OPENING_QUOTE", '"', 1, 6],
+                ["STRING", 'foo {{bar}}', 1, 7],
+                ["CLOSING_QUOTE", '"', 1, 18],
+                ["PUNCTUATION", ')', 1, 19],
+                ["WHITESPACE", ' ', 1, 20],
+                ["VARIABLE_END", '}}', 1, 21],
+                ["EOF", null, 1, 23]
             ]);
 
             test.end();
@@ -445,7 +445,7 @@ bla }}`;
             let tokens = lexer.tokenize('{{in}}');
 
             testTokens(test, [tokens[1]], [
-                [TokenType.NAME, 'in', 1, 3]
+                ["NAME", 'in', 1, 3]
             ]);
 
             test.end();
@@ -462,12 +462,12 @@ bla
 %}`);
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, '\n', 1, 3],
-                [TokenType.NAME, 'bla', 2, 1],
-                [TokenType.WHITESPACE, '\n', 2, 4],
-                [TokenType.TAG_END, '%}', 3, 1],
-                [TokenType.EOF, null, 3, 3]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", '\n', 1, 3],
+                ["NAME", 'bla', 2, 1],
+                ["WHITESPACE", '\n', 2, 4],
+                ["TAG_END", '%}', 3, 1],
+                ["EOF", null, 3, 3]
             ]);
 
             test.end();
@@ -478,12 +478,12 @@ bla
             let tokens = lexer.tokenize(`{% ${'x'.repeat(100000)} %}`);
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'x'.repeat(100000), 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 100004],
-                [TokenType.TAG_END, '%}', 1, 100005],
-                [TokenType.EOF, null, 1, 100007]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'x'.repeat(100000), 1, 4],
+                ["WHITESPACE", ' ', 1, 100004],
+                ["TAG_END", '%}', 1, 100005],
+                ["EOF", null, 1, 100007]
             ]);
 
             test.end();
@@ -494,12 +494,12 @@ bla
             let tokens = lexer.tokenize('{% § %}');
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, '§', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 5],
-                [TokenType.TAG_END, '%}', 1, 6],
-                [TokenType.EOF, null, 1, 8]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", '§', 1, 4],
+                ["WHITESPACE", ' ', 1, 5],
+                ["TAG_END", '%}', 1, 6],
+                ["EOF", null, 1, 8]
             ]);
 
             test.end();
@@ -510,14 +510,14 @@ bla
             let tokens = lexer.tokenize(`{% foo bar %}`);
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'foo', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 7],
-                [TokenType.NAME, 'bar', 1, 8],
-                [TokenType.WHITESPACE, ' ', 1, 11],
-                [TokenType.TAG_END, '%}', 1, 12],
-                [TokenType.EOF, null, 1, 14]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'foo', 1, 4],
+                ["WHITESPACE", ' ', 1, 7],
+                ["NAME", 'bar', 1, 8],
+                ["WHITESPACE", ' ', 1, 11],
+                ["TAG_END", '%}', 1, 12],
+                ["EOF", null, 1, 14]
             ]);
 
             test.end();
@@ -549,12 +549,12 @@ bla
             let tokens = lexer.tokenize('{{ 922337203685477580700 }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NUMBER, '922337203685477580700', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 25],
-                [TokenType.VARIABLE_END, '}}', 1, 26],
-                [TokenType.EOF, null, 1, 28]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NUMBER", '922337203685477580700', 1, 4],
+                ["WHITESPACE", ' ', 1, 25],
+                ["VARIABLE_END", '}}', 1, 26],
+                ["EOF", null, 1, 28]
             ]);
 
             test.end();
@@ -565,12 +565,12 @@ bla
             let tokens = lexer.tokenize('{{ 92233720368547.7580700 }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NUMBER, '92233720368547.7580700', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 26],
-                [TokenType.VARIABLE_END, '}}', 1, 27],
-                [TokenType.EOF, null, 1, 29]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NUMBER", '92233720368547.7580700', 1, 4],
+                ["WHITESPACE", ' ', 1, 26],
+                ["VARIABLE_END", '}}', 1, 27],
+                ["EOF", null, 1, 29]
             ]);
 
             test.end();
@@ -591,14 +591,14 @@ bla
                 let tokens = lexer.tokenize(fixture.template);
 
                 testTokens(test, tokens, [
-                    [TokenType.VARIABLE_START, '{{', 1, 1],
-                    [TokenType.WHITESPACE, ' ', 1, 3],
-                    [TokenType.OPENING_QUOTE, fixture.quote, 1, 4],
-                    [TokenType.STRING, fixture.expected, 1, 5],
-                    [TokenType.CLOSING_QUOTE, fixture.quote, 1, 15],
-                    [TokenType.WHITESPACE, ' ', 1, 16],
-                    [TokenType.VARIABLE_END, '}}', 1, 17],
-                    [TokenType.EOF, null, 1, 19]
+                    ["VARIABLE_START", '{{', 1, 1],
+                    ["WHITESPACE", ' ', 1, 3],
+                    ["OPENING_QUOTE", fixture.quote, 1, 4],
+                    ["STRING", fixture.expected, 1, 5],
+                    ["CLOSING_QUOTE", fixture.quote, 1, 15],
+                    ["WHITESPACE", ' ', 1, 16],
+                    ["VARIABLE_END", '}}', 1, 17],
+                    ["EOF", null, 1, 19]
                 ]);
             });
 
@@ -610,24 +610,24 @@ bla
             let tokens = lexer.tokenize('foo {{ "bar #{ baz + 1 }" }}');
 
             testTokens(test, tokens, [
-                [TokenType.TEXT, 'foo ', 1, 1],
-                [TokenType.VARIABLE_START, '{{', 1, 5],
-                [TokenType.WHITESPACE, ' ', 1, 7],
-                [TokenType.OPENING_QUOTE, '"', 1, 8],
-                [TokenType.STRING, 'bar ', 1, 9],
-                [TokenType.INTERPOLATION_START, '#{', 1, 13],
-                [TokenType.WHITESPACE, ' ', 1, 15],
-                [TokenType.NAME, 'baz', 1, 16],
-                [TokenType.WHITESPACE, ' ', 1, 19],
-                [TokenType.OPERATOR, '+', 1, 20],
-                [TokenType.WHITESPACE, ' ', 1, 21],
-                [TokenType.NUMBER, '1', 1, 22],
-                [TokenType.WHITESPACE, ' ', 1, 23],
-                [TokenType.INTERPOLATION_END, '}', 1, 24],
-                [TokenType.CLOSING_QUOTE, '"', 1, 25],
-                [TokenType.WHITESPACE, ' ', 1, 26],
-                [TokenType.VARIABLE_END, '}}', 1, 27],
-                [TokenType.EOF, null, 1, 29]
+                ["TEXT", 'foo ', 1, 1],
+                ["VARIABLE_START", '{{', 1, 5],
+                ["WHITESPACE", ' ', 1, 7],
+                ["OPENING_QUOTE", '"', 1, 8],
+                ["STRING", 'bar ', 1, 9],
+                ["INTERPOLATION_START", '#{', 1, 13],
+                ["WHITESPACE", ' ', 1, 15],
+                ["NAME", 'baz', 1, 16],
+                ["WHITESPACE", ' ', 1, 19],
+                ["OPERATOR", '+', 1, 20],
+                ["WHITESPACE", ' ', 1, 21],
+                ["NUMBER", '1', 1, 22],
+                ["WHITESPACE", ' ', 1, 23],
+                ["INTERPOLATION_END", '}', 1, 24],
+                ["CLOSING_QUOTE", '"', 1, 25],
+                ["WHITESPACE", ' ', 1, 26],
+                ["VARIABLE_END", '}}', 1, 27],
+                ["EOF", null, 1, 29]
             ]);
 
             test.end();
@@ -638,14 +638,14 @@ bla
             let tokens = lexer.tokenize('{{ "bar \\#{baz+1}" }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.OPENING_QUOTE, '"', 1, 4],
-                [TokenType.STRING, 'bar \\#{baz+1}', 1, 5],
-                [TokenType.CLOSING_QUOTE, '"', 1, 18],
-                [TokenType.WHITESPACE, ' ', 1, 19],
-                [TokenType.VARIABLE_END, '}}', 1, 20],
-                [TokenType.EOF, null, 1, 22]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["OPENING_QUOTE", '"', 1, 4],
+                ["STRING", 'bar \\#{baz+1}', 1, 5],
+                ["CLOSING_QUOTE", '"', 1, 18],
+                ["WHITESPACE", ' ', 1, 19],
+                ["VARIABLE_END", '}}', 1, 20],
+                ["EOF", null, 1, 22]
             ]);
 
             test.end();
@@ -656,14 +656,14 @@ bla
             let tokens = lexer.tokenize('{{ "bar # baz" }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.OPENING_QUOTE, '"', 1, 4],
-                [TokenType.STRING, 'bar # baz', 1, 5],
-                [TokenType.CLOSING_QUOTE, '"', 1, 14],
-                [TokenType.WHITESPACE, ' ', 1, 15],
-                [TokenType.VARIABLE_END, '}}', 1, 16],
-                [TokenType.EOF, null, 1, 18]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["OPENING_QUOTE", '"', 1, 4],
+                ["STRING", 'bar # baz', 1, 5],
+                ["CLOSING_QUOTE", '"', 1, 14],
+                ["WHITESPACE", ' ', 1, 15],
+                ["VARIABLE_END", '}}', 1, 16],
+                ["EOF", null, 1, 18]
             ]);
 
             test.end();
@@ -692,24 +692,24 @@ bla
             let tokens = lexer.tokenize('{{ "bar #{ "foo#{bar}" }" }}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.OPENING_QUOTE, '"', 1, 4],
-                [TokenType.STRING, 'bar ', 1, 5],
-                [TokenType.INTERPOLATION_START, '#{', 1, 9],
-                [TokenType.WHITESPACE, ' ', 1, 11],
-                [TokenType.OPENING_QUOTE, '"', 1, 12],
-                [TokenType.STRING, 'foo', 1, 13],
-                [TokenType.INTERPOLATION_START, '#{', 1, 16],
-                [TokenType.NAME, 'bar', 1, 18],
-                [TokenType.INTERPOLATION_END, '}', 1, 21],
-                [TokenType.CLOSING_QUOTE, '"', 1, 22],
-                [TokenType.WHITESPACE, ' ', 1, 23],
-                [TokenType.INTERPOLATION_END, '}', 1, 24],
-                [TokenType.CLOSING_QUOTE, '"', 1, 25],
-                [TokenType.WHITESPACE, ' ', 1, 26],
-                [TokenType.VARIABLE_END, '}}', 1, 27],
-                [TokenType.EOF, null, 1, 29]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["OPENING_QUOTE", '"', 1, 4],
+                ["STRING", 'bar ', 1, 5],
+                ["INTERPOLATION_START", '#{', 1, 9],
+                ["WHITESPACE", ' ', 1, 11],
+                ["OPENING_QUOTE", '"', 1, 12],
+                ["STRING", 'foo', 1, 13],
+                ["INTERPOLATION_START", '#{', 1, 16],
+                ["NAME", 'bar', 1, 18],
+                ["INTERPOLATION_END", '}', 1, 21],
+                ["CLOSING_QUOTE", '"', 1, 22],
+                ["WHITESPACE", ' ', 1, 23],
+                ["INTERPOLATION_END", '}', 1, 24],
+                ["CLOSING_QUOTE", '"', 1, 25],
+                ["WHITESPACE", ' ', 1, 26],
+                ["VARIABLE_END", '}}', 1, 27],
+                ["EOF", null, 1, 29]
             ]);
 
             test.end();
@@ -720,26 +720,26 @@ bla
             let tokens = lexer.tokenize('{% foo "bar #{ "foo#{bar}" }" %}');
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.NAME, 'foo', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 7],
-                [TokenType.OPENING_QUOTE, '"', 1, 8],
-                [TokenType.STRING, 'bar ', 1, 9],
-                [TokenType.INTERPOLATION_START, '#{', 1, 13],
-                [TokenType.WHITESPACE, ' ', 1, 15],
-                [TokenType.OPENING_QUOTE, '"', 1, 16],
-                [TokenType.STRING, 'foo', 1, 17],
-                [TokenType.INTERPOLATION_START, '#{', 1, 20],
-                [TokenType.NAME, 'bar', 1, 22],
-                [TokenType.INTERPOLATION_END, '}', 1, 25],
-                [TokenType.CLOSING_QUOTE, '"', 1, 26],
-                [TokenType.WHITESPACE, ' ', 1, 27],
-                [TokenType.INTERPOLATION_END, '}', 1, 28],
-                [TokenType.CLOSING_QUOTE, '"', 1, 29],
-                [TokenType.WHITESPACE, ' ', 1, 30],
-                [TokenType.TAG_END, '%}', 1, 31],
-                [TokenType.EOF, null, 1, 33]
+                ["TAG_START", '{%', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["NAME", 'foo', 1, 4],
+                ["WHITESPACE", ' ', 1, 7],
+                ["OPENING_QUOTE", '"', 1, 8],
+                ["STRING", 'bar ', 1, 9],
+                ["INTERPOLATION_START", '#{', 1, 13],
+                ["WHITESPACE", ' ', 1, 15],
+                ["OPENING_QUOTE", '"', 1, 16],
+                ["STRING", 'foo', 1, 17],
+                ["INTERPOLATION_START", '#{', 1, 20],
+                ["NAME", 'bar', 1, 22],
+                ["INTERPOLATION_END", '}', 1, 25],
+                ["CLOSING_QUOTE", '"', 1, 26],
+                ["WHITESPACE", ' ', 1, 27],
+                ["INTERPOLATION_END", '}', 1, 28],
+                ["CLOSING_QUOTE", '"', 1, 29],
+                ["WHITESPACE", ' ', 1, 30],
+                ["TAG_END", '%}', 1, 31],
+                ["EOF", null, 1, 33]
             ]);
 
             test.end();
@@ -750,11 +750,11 @@ bla
             let tokens = lexer.tokenize('{{""}}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.OPENING_QUOTE, '"', 1, 3],
-                [TokenType.CLOSING_QUOTE, '"', 1, 4],
-                [TokenType.VARIABLE_END, '}}', 1, 5],
-                [TokenType.EOF, null, 1, 7]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["OPENING_QUOTE", '"', 1, 3],
+                ["CLOSING_QUOTE", '"', 1, 4],
+                ["VARIABLE_END", '}}', 1, 5],
+                ["EOF", null, 1, 7]
             ]);
 
             test.end();
@@ -765,12 +765,12 @@ bla
             let tokens = lexer.tokenize('{{\'foo\'}}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.OPENING_QUOTE, '\'', 1, 3],
-                [TokenType.STRING, 'foo', 1, 4],
-                [TokenType.CLOSING_QUOTE, '\'', 1, 7],
-                [TokenType.VARIABLE_END, '}}', 1, 8],
-                [TokenType.EOF, null, 1, 10]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["OPENING_QUOTE", '\'', 1, 3],
+                ["STRING", 'foo', 1, 4],
+                ["CLOSING_QUOTE", '\'', 1, 7],
+                ["VARIABLE_END", '}}', 1, 8],
+                ["EOF", null, 1, 10]
             ]);
 
             test.end();
@@ -781,12 +781,12 @@ bla
             let tokens = lexer.tokenize('{{\'foo#{bar}\'}}');
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.OPENING_QUOTE, '\'', 1, 3],
-                [TokenType.STRING, 'foo#{bar}', 1, 4],
-                [TokenType.CLOSING_QUOTE, '\'', 1, 13],
-                [TokenType.VARIABLE_END, '}}', 1, 14],
-                [TokenType.EOF, null, 1, 16]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["OPENING_QUOTE", '\'', 1, 3],
+                ["STRING", 'foo#{bar}', 1, 4],
+                ["CLOSING_QUOTE", '\'', 1, 13],
+                ["VARIABLE_END", '}}', 1, 14],
+                ["EOF", null, 1, 16]
             ]);
 
             test.end();
@@ -797,16 +797,16 @@ bla
             let tokens = lexer.tokenize(`{{"string \\"interpolation\\": '#{var}'"}}`);
 
             testTokens(test, tokens, [
-                [TokenType.VARIABLE_START, '{{', 1, 1],
-                [TokenType.OPENING_QUOTE, '"', 1, 3],
-                [TokenType.STRING, 'string \\"interpolation\\": \'', 1, 4],
-                [TokenType.INTERPOLATION_START, '#{', 1, 31],
-                [TokenType.NAME, 'var', 1, 33],
-                [TokenType.INTERPOLATION_END, '}', 1, 36],
-                [TokenType.STRING, "'", 1, 37],
-                [TokenType.CLOSING_QUOTE, '"', 1, 38],
-                [TokenType.VARIABLE_END, '}}', 1, 39],
-                [TokenType.EOF, null, 1, 41]
+                ["VARIABLE_START", '{{', 1, 1],
+                ["OPENING_QUOTE", '"', 1, 3],
+                ["STRING", 'string \\"interpolation\\": \'', 1, 4],
+                ["INTERPOLATION_START", '#{', 1, 31],
+                ["NAME", 'var', 1, 33],
+                ["INTERPOLATION_END", '}', 1, 36],
+                ["STRING", "'", 1, 37],
+                ["CLOSING_QUOTE", '"', 1, 38],
+                ["VARIABLE_END", '}}', 1, 39],
+                ["EOF", null, 1, 41]
             ]);
 
             test.end();
@@ -822,8 +822,8 @@ bla
         tokens = lexer.tokenize('{{ is not foo }}');
 
         testTokens(test, [tokens[2], tokens[4]], [
-            [TokenType.TEST_OPERATOR, 'is not', 1, 4],
-            [TokenType.NAME, 'foo', 1, 11]
+            ["TEST_OPERATOR", 'is not', 1, 4],
+            ["NAME", 'foo', 1, 11]
         ]);
 
         test.comment('space within a test operator can be any amount of whitespaces');
@@ -831,29 +831,29 @@ bla
         tokens = lexer.tokenize('{{ is            not foo }}');
 
         testTokens(test, [tokens[2], tokens[4]], [
-            [TokenType.TEST_OPERATOR, 'is            not', 1, 4],
-            [TokenType.NAME, 'foo', 1, 22]
+            ["TEST_OPERATOR", 'is            not', 1, 4],
+            ["NAME", 'foo', 1, 22]
         ]);
 
         tokens = lexer.tokenize('{{ is foo }}');
 
         testTokens(test, [tokens[2], tokens[4]], [
-            [TokenType.TEST_OPERATOR, 'is', 1, 4],
-            [TokenType.NAME, 'foo', 1, 7]
+            ["TEST_OPERATOR", 'is', 1, 4],
+            ["NAME", 'foo', 1, 7]
         ]);
 
         tokens = lexer.tokenize('{{ is is not }}');
 
         testTokens(test, [tokens[2], tokens[4]], [
-            [TokenType.TEST_OPERATOR, 'is', 1, 4],
-            [TokenType.TEST_OPERATOR, 'is not', 1, 7]
+            ["TEST_OPERATOR", 'is', 1, 4],
+            ["TEST_OPERATOR", 'is not', 1, 7]
         ]);
 
         tokens = lexer.tokenize('{{ is not is }}');
 
         testTokens(test, [tokens[2], tokens[4]], [
-            [TokenType.TEST_OPERATOR, 'is not', 1, 4],
-            [TokenType.TEST_OPERATOR, 'is', 1, 11]
+            ["TEST_OPERATOR", 'is not', 1, 4],
+            ["TEST_OPERATOR", 'is', 1, 11]
         ]);
 
         test.end();
@@ -869,7 +869,7 @@ bla
             let tokens = lexer.tokenize(`{{ ${operator} }}`);
 
             testTokens(test, [tokens[2]], [
-                [TokenType.OPERATOR, operator, 1, 4]
+                ["OPERATOR", operator, 1, 4]
             ]);
         }
 
@@ -878,7 +878,7 @@ bla
         tokens = lexer.tokenize('{{custom          operator }}');
 
         testTokens(test, [tokens[1]], [
-            [TokenType.OPERATOR, 'custom          operator', 1, 3]
+            ["OPERATOR", 'custom          operator', 1, 3]
         ]);
 
         test.comment('not ending with a letter and not followed by either a space or an opening parenthesis');
@@ -886,7 +886,7 @@ bla
         tokens = lexer.tokenize('{{+}}');
 
         testTokens(test, [tokens[1]], [
-            [TokenType.OPERATOR, '+', 1, 3]
+            ["OPERATOR", '+', 1, 3]
         ]);
 
         test.test('ending with a letter and followed by a space or an opening parenthesis', (test) => {
@@ -896,19 +896,19 @@ bla
             tokens = lexer.tokenize('{{in(foo)}}');
 
             testTokens(test, [tokens[1]], [
-                [TokenType.OPERATOR, 'in', 1, 3]
+                ["OPERATOR", 'in', 1, 3]
             ]);
 
             tokens = lexer.tokenize('{{in foo}}');
 
             testTokens(test, [tokens[1]], [
-                [TokenType.OPERATOR, 'in', 1, 3]
+                ["OPERATOR", 'in', 1, 3]
             ]);
 
             tokens = lexer.tokenize('{{in\nfoo}}');
 
             testTokens(test, [tokens[1]], [
-                [TokenType.OPERATOR, 'in', 1, 3]
+                ["OPERATOR", 'in', 1, 3]
             ]);
 
             test.end();
@@ -924,25 +924,25 @@ bla
         tokens = lexer.tokenize('{{ foo|filter(v => v > 1) }}');
 
         testTokens(test, tokens, [
-            [TokenType.VARIABLE_START, '{{', 1, 1],
-            [TokenType.WHITESPACE, ' ', 1, 3],
-            [TokenType.NAME, 'foo', 1, 4],
-            [TokenType.PUNCTUATION, '|', 1, 7],
-            [TokenType.NAME, 'filter', 1, 8],
-            [TokenType.PUNCTUATION, '(', 1, 14],
-            [TokenType.NAME, 'v', 1, 15],
-            [TokenType.WHITESPACE, ' ', 1, 16],
-            [TokenType.ARROW, '=>', 1, 17],
-            [TokenType.WHITESPACE, ' ', 1, 19],
-            [TokenType.NAME, 'v', 1, 20],
-            [TokenType.WHITESPACE, ' ', 1, 21],
-            [TokenType.OPERATOR, '>', 1, 22],
-            [TokenType.WHITESPACE, ' ', 1, 23],
-            [TokenType.NUMBER, '1', 1, 24],
-            [TokenType.PUNCTUATION, ')', 1, 25],
-            [TokenType.WHITESPACE, ' ', 1, 26],
-            [TokenType.VARIABLE_END, '}}', 1, 27],
-            [TokenType.EOF, null, 1, 29]
+            ["VARIABLE_START", '{{', 1, 1],
+            ["WHITESPACE", ' ', 1, 3],
+            ["NAME", 'foo', 1, 4],
+            ["PUNCTUATION", '|', 1, 7],
+            ["NAME", 'filter', 1, 8],
+            ["PUNCTUATION", '(', 1, 14],
+            ["NAME", 'v', 1, 15],
+            ["WHITESPACE", ' ', 1, 16],
+            ["ARROW", '=>', 1, 17],
+            ["WHITESPACE", ' ', 1, 19],
+            ["NAME", 'v', 1, 20],
+            ["WHITESPACE", ' ', 1, 21],
+            ["OPERATOR", '>', 1, 22],
+            ["WHITESPACE", ' ', 1, 23],
+            ["NUMBER", '1', 1, 24],
+            ["PUNCTUATION", ')', 1, 25],
+            ["WHITESPACE", ' ', 1, 26],
+            ["VARIABLE_END", '}}', 1, 27],
+            ["EOF", null, 1, 29]
         ]);
 
         test.end();
@@ -953,8 +953,8 @@ bla
         let tokens = lexer.tokenize('foo ');
 
         testTokens(test, tokens, [
-            [TokenType.TEXT, 'foo ', 1, 1],
-            [TokenType.EOF, null, 1, 5]
+            ["TEXT", 'foo ', 1, 1],
+            ["EOF", null, 1, 5]
         ]);
 
         test.test('containing line feeds', (test) => {
@@ -962,8 +962,8 @@ bla
             let tokens = lexer.tokenize('\r\rfoo\r\nbar\roof\n\r');
 
             testTokens(test, tokens, [
-                [TokenType.TEXT, '\r\rfoo\r\nbar\roof\n\r', 1, 1],
-                [TokenType.EOF, null, 7, 1]
+                ["TEXT", '\r\rfoo\r\nbar\roof\n\r', 1, 1],
+                ["EOF", null, 7, 1]
             ]);
 
             test.end();
@@ -974,12 +974,12 @@ bla
             let tokens = lexer.tokenize('foo {{bar}} bar');
 
             testTokens(test, tokens, [
-                [TokenType.TEXT, 'foo ', 1, 1],
-                [TokenType.VARIABLE_START, '{{', 1, 5],
-                [TokenType.NAME, 'bar', 1, 7],
-                [TokenType.VARIABLE_END, '}}', 1, 10],
-                [TokenType.TEXT, ' bar', 1, 12],
-                [TokenType.EOF, null, 1, 16]
+                ["TEXT", 'foo ', 1, 1],
+                ["VARIABLE_START", '{{', 1, 5],
+                ["NAME", 'bar', 1, 7],
+                ["VARIABLE_END", '}}', 1, 10],
+                ["TEXT", ' bar', 1, 12],
+                ["EOF", null, 1, 16]
             ]);
 
             test.end();
@@ -994,14 +994,14 @@ bla
             let tokens = lexer.tokenize('{%- foo -%}');
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.TRIMMING_MODIFIER, '-', 1, 3],
-                [TokenType.WHITESPACE, ' ', 1, 4],
-                [TokenType.NAME, 'foo', 1, 5],
-                [TokenType.WHITESPACE, ' ', 1, 8],
-                [TokenType.TRIMMING_MODIFIER, '-', 1, 9],
-                [TokenType.TAG_END, '%}', 1, 10],
-                [TokenType.EOF, null, 1, 12]
+                ["TAG_START", '{%', 1, 1],
+                ["TRIMMING_MODIFIER", '-', 1, 3],
+                ["WHITESPACE", ' ', 1, 4],
+                ["NAME", 'foo', 1, 5],
+                ["WHITESPACE", ' ', 1, 8],
+                ["TRIMMING_MODIFIER", '-', 1, 9],
+                ["TAG_END", '%}', 1, 10],
+                ["EOF", null, 1, 12]
             ]);
 
             test.end();
@@ -1012,14 +1012,14 @@ bla
             let tokens = lexer.tokenize('{%~ foo ~%}');
 
             testTokens(test, tokens, [
-                [TokenType.TAG_START, '{%', 1, 1],
-                [TokenType.LINE_TRIMMING_MODIFIER, '~', 1, 3],
-                [TokenType.WHITESPACE, ' ', 1, 4],
-                [TokenType.NAME, 'foo', 1, 5],
-                [TokenType.WHITESPACE, ' ', 1, 8],
-                [TokenType.LINE_TRIMMING_MODIFIER, '~', 1, 9],
-                [TokenType.TAG_END, '%}', 1, 10],
-                [TokenType.EOF, null, 1, 12]
+                ["TAG_START", '{%', 1, 1],
+                ["LINE_TRIMMING_MODIFIER", '~', 1, 3],
+                ["WHITESPACE", ' ', 1, 4],
+                ["NAME", 'foo', 1, 5],
+                ["WHITESPACE", ' ', 1, 8],
+                ["LINE_TRIMMING_MODIFIER", '~', 1, 9],
+                ["TAG_END", '%}', 1, 10],
+                ["EOF", null, 1, 12]
             ]);
 
             test.end();
@@ -1031,12 +1031,12 @@ bla
         let tokens = lexer.tokenize('{# foo bar #}');
 
         testTokens(test, tokens, [
-            [TokenType.COMMENT_START, '{#', 1, 1],
-            [TokenType.WHITESPACE, ' ', 1, 3],
-            [TokenType.TEXT, 'foo bar', 1, 4],
-            [TokenType.WHITESPACE, ' ', 1, 11],
-            [TokenType.COMMENT_END, '#}', 1, 12],
-            [TokenType.EOF, null, 1, 14]
+            ["COMMENT_START", '{#', 1, 1],
+            ["WHITESPACE", ' ', 1, 3],
+            ["TEXT", 'foo bar', 1, 4],
+            ["WHITESPACE", ' ', 1, 11],
+            ["COMMENT_END", '#}', 1, 12],
+            ["EOF", null, 1, 14]
         ]);
 
         test.test('long comments', (test) => {
@@ -1046,10 +1046,10 @@ bla
             let tokens = lexer.tokenize('{#' + value + '#}');
 
             testTokens(test, tokens, [
-                [TokenType.COMMENT_START, '{#', 1, 1],
-                [TokenType.TEXT, value, 1, 3],
-                [TokenType.COMMENT_END, '#}', 1, 100003],
-                [TokenType.EOF, null, 1, 100005]
+                ["COMMENT_START", '{#', 1, 1],
+                ["TEXT", value, 1, 3],
+                ["COMMENT_END", '#}', 1, 100003],
+                ["EOF", null, 1, 100005]
             ]);
 
             test.end();
@@ -1076,16 +1076,16 @@ bla
             let tokens = lexer.tokenize('{#rn#}\r\n{#r#}\r{#n#}\n');
 
             testTokens(test, tokens, [
-                [TokenType.COMMENT_START, '{#', 1, 1],
-                [TokenType.TEXT, 'rn', 1, 3],
-                [TokenType.COMMENT_END, '#}\r\n', 1, 5],
-                [TokenType.COMMENT_START, '{#', 2, 1],
-                [TokenType.TEXT, 'r', 2, 3],
-                [TokenType.COMMENT_END, '#}\r', 2, 4],
-                [TokenType.COMMENT_START, '{#', 3, 1],
-                [TokenType.TEXT, 'n', 3, 3],
-                [TokenType.COMMENT_END, '#}\n', 3, 4],
-                [TokenType.EOF, null, 4, 1]
+                ["COMMENT_START", '{#', 1, 1],
+                ["TEXT", 'rn', 1, 3],
+                ["COMMENT_END", '#}\r\n', 1, 5],
+                ["COMMENT_START", '{#', 2, 1],
+                ["TEXT", 'r', 2, 3],
+                ["COMMENT_END", '#}\r', 2, 4],
+                ["COMMENT_START", '{#', 3, 1],
+                ["TEXT", 'n', 3, 3],
+                ["COMMENT_END", '#}\n', 3, 4],
+                ["EOF", null, 4, 1]
             ]);
 
             test.test('except when using line whitespace trimming on the right', (test) => {
@@ -1093,8 +1093,8 @@ bla
 bar`);
 
                 testTokens(test, [tokens[3], tokens[4]], [
-                    [TokenType.COMMENT_END, '#}', 1, 7],
-                    [TokenType.TEXT, '\nbar', 1, 9]
+                    ["COMMENT_END", '#}', 1, 7],
+                    ["TEXT", '\nbar', 1, 9]
                 ]);
 
                 test.end();
@@ -1108,15 +1108,15 @@ bar`);
             let tokens = lexer.tokenize('{# a #}{{foo}}');
 
             testTokens(test, tokens, [
-                [TokenType.COMMENT_START, '{#', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.TEXT, 'a', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 5],
-                [TokenType.COMMENT_END, '#}', 1, 6],
-                [TokenType.VARIABLE_START, '{{', 1, 8],
-                [TokenType.NAME, 'foo', 1, 10],
-                [TokenType.VARIABLE_END, '}}', 1, 13],
-                [TokenType.EOF, null, 1, 15]
+                ["COMMENT_START", '{#', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["TEXT", 'a', 1, 4],
+                ["WHITESPACE", ' ', 1, 5],
+                ["COMMENT_END", '#}', 1, 6],
+                ["VARIABLE_START", '{{', 1, 8],
+                ["NAME", 'foo', 1, 10],
+                ["VARIABLE_END", '}}', 1, 13],
+                ["EOF", null, 1, 15]
             ]);
 
             test.end();
@@ -1127,12 +1127,12 @@ bar`);
             let tokens = lexer.tokenize('{# {{a}} #}');
 
             testTokens(test, tokens, [
-                [TokenType.COMMENT_START, '{#', 1, 1],
-                [TokenType.WHITESPACE, ' ', 1, 3],
-                [TokenType.TEXT, '{{a}}', 1, 4],
-                [TokenType.WHITESPACE, ' ', 1, 9],
-                [TokenType.COMMENT_END, '#}', 1, 10],
-                [TokenType.EOF, null, 1, 12]
+                ["COMMENT_START", '{#', 1, 1],
+                ["WHITESPACE", ' ', 1, 3],
+                ["TEXT", '{{a}}', 1, 4],
+                ["WHITESPACE", ' ', 1, 9],
+                ["COMMENT_END", '#}', 1, 10],
+                ["EOF", null, 1, 12]
             ]);
 
             test.end();
@@ -1146,17 +1146,17 @@ bar`);
         let tokens = lexer.tokenize('{{ [1, 2] }}');
 
         testTokens(test, tokens, [
-            [TokenType.VARIABLE_START, '{{', 1, 1],
-            [TokenType.WHITESPACE, ' ', 1, 3],
-            [TokenType.PUNCTUATION, '[', 1, 4],
-            [TokenType.NUMBER, '1', 1, 5],
-            [TokenType.PUNCTUATION, ',', 1, 6],
-            [TokenType.WHITESPACE, ' ', 1, 7],
-            [TokenType.NUMBER, '2', 1, 8],
-            [TokenType.PUNCTUATION, ']', 1, 9],
-            [TokenType.WHITESPACE, ' ', 1, 10],
-            [TokenType.VARIABLE_END, '}}', 1, 11],
-            [TokenType.EOF, null, 1, 13]
+            ["VARIABLE_START", '{{', 1, 1],
+            ["WHITESPACE", ' ', 1, 3],
+            ["PUNCTUATION", '[', 1, 4],
+            ["NUMBER", '1', 1, 5],
+            ["PUNCTUATION", ',', 1, 6],
+            ["WHITESPACE", ' ', 1, 7],
+            ["NUMBER", '2', 1, 8],
+            ["PUNCTUATION", ']', 1, 9],
+            ["WHITESPACE", ' ', 1, 10],
+            ["VARIABLE_END", '}}', 1, 11],
+            ["EOF", null, 1, 13]
         ]);
 
         test.test('unclosed bracket', (test) => {
@@ -1200,8 +1200,8 @@ bar`);
 bar`);
 
         testTokens(test, [tokens[2], tokens[3]], [
-            [TokenType.TAG_END, '%}\n', 1, 6],
-            [TokenType.TEXT, 'bar', 2, 1]
+            ["TAG_END", '%}\n', 1, 6],
+            ["TEXT", 'bar', 2, 1]
         ]);
 
         test.test('except when using line whitespace trimming on the right', (test) => {
@@ -1209,8 +1209,8 @@ bar`);
 bar`);
 
             testTokens(test, [tokens[3], tokens[4]], [
-                [TokenType.TAG_END, '%}', 1, 7],
-                [TokenType.TEXT, '\nbar', 1, 9]
+                ["TAG_END", '%}', 1, 7],
+                ["TEXT", '\nbar', 1, 9]
             ]);
 
             test.end();
@@ -1221,10 +1221,10 @@ bar`);
 bar{%endverbatim%}
 foo`);
             testTokens(test, [tokens[2], tokens[3], tokens[6], tokens[7]], [
-                [TokenType.TAG_END, '%}', 1, 11],
-                [TokenType.TEXT, '\nbar', 1, 13],
-                [TokenType.TAG_END, '%}', 2, 17],
-                [TokenType.TEXT, '\nfoo', 2, 19],
+                ["TAG_END", '%}', 1, 11],
+                ["TEXT", '\nbar', 1, 13],
+                ["TAG_END", '%}', 2, 17],
+                ["TEXT", '\nfoo', 2, 19],
             ]);
 
             test.end();
@@ -1240,16 +1240,16 @@ foo`);
 bar`);
 
         testTokens(test, tokens, [
-            [TokenType.TEXT, 'foo\n', 1, 1],
-            [TokenType.TAG_START, '{%', 2, 1],
-            [TokenType.WHITESPACE, ' ', 2, 3],
-            [TokenType.NAME, 'line', 2, 4],
-            [TokenType.WHITESPACE, ' ', 2, 8],
-            [TokenType.NUMBER, '5', 2, 9],
-            [TokenType.WHITESPACE, ' ', 2, 10],
-            [TokenType.TAG_END, '%}', 2, 11],
-            [TokenType.TEXT, '\nbar', 5, 0],
-            [TokenType.EOF, null, 6, 4]
+            ["TEXT", 'foo\n', 1, 1],
+            ["TAG_START", '{%', 2, 1],
+            ["WHITESPACE", ' ', 2, 3],
+            ["NAME", 'line', 2, 4],
+            ["WHITESPACE", ' ', 2, 8],
+            ["NUMBER", '5', 2, 9],
+            ["WHITESPACE", ' ', 2, 10],
+            ["TAG_END", '%}', 2, 11],
+            ["TEXT", '\nbar', 5, 0],
+            ["EOF", null, 6, 4]
         ]);
 
         tokens = lexer.tokenize(`foo
@@ -1257,14 +1257,14 @@ bar`);
 bar`);
 
         testTokens(test, tokens, [
-            [TokenType.TEXT, 'foo\n', 1, 1],
-            [TokenType.TAG_START, '{%', 2, 1],
-            [TokenType.NAME, 'line', 2, 3],
-            [TokenType.WHITESPACE, ' ', 2, 7],
-            [TokenType.NUMBER, '5', 2, 8],
-            [TokenType.TAG_END, '%}', 2, 9],
-            [TokenType.TEXT, '\nbar', 5, 0],
-            [TokenType.EOF, null, 6, 4]
+            ["TEXT", 'foo\n', 1, 1],
+            ["TAG_START", '{%', 2, 1],
+            ["NAME", 'line', 2, 3],
+            ["WHITESPACE", ' ', 2, 7],
+            ["NUMBER", '5', 2, 8],
+            ["TAG_END", '%}', 2, 9],
+            ["TEXT", '\nbar', 5, 0],
+            ["EOF", null, 6, 4]
         ]);
 
         test.end();
